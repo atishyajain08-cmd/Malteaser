@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Browse the Malteaser editorial lookbook for styling inspiration.">
+  <title>Lookbook | Malteaser</title>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body class="inner-page">
+  <header class="site-header is-scrolled">
+    <a href="index.html" class="brand brand--logo" aria-label="Malteaser home"><img src="assets/malteaser-logo.png" alt=""></a>
+    <nav class="main-nav" aria-label="Primary navigation"><a href="shop.html">New Arrivals</a><a href="collections.html">Collections</a><a href="lookbook.html">Lookbook</a><a href="product.html">Product</a></nav>
+    <div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button" href="login.html" aria-label="Customer login"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div>
+  </header>
+  <main>
+    <section class="page-hero">
+      <div class="page-hero__copy" data-reveal><p class="eyebrow">Lookbook</p><h1>Editorial styling for the days that glow.</h1><p>Magazine-inspired outfit stories for brunch, work, travel, and evening plans.</p><a href="product.html" class="button button--dark magnetic">Shop Featured Look</a></div>
+      <div class="page-hero__image" data-reveal><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1300&q=85" alt="Malteaser editorial lookbook"></div>
+    </section>
+    <section class="lookbook section">
+      <div class="lookbook-grid">
+        <article class="lookbook-card large" data-reveal><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=85" alt="Soft tailoring look"><h3>Soft tailoring for morning plans.</h3></article>
+        <article class="lookbook-card offset" data-reveal><img src="https://images.unsplash.com/photo-1496440737103-cd596325d314?auto=format&fit=crop&w=900&q=85" alt="Blush evening look"><h3>Blush notes after dark.</h3></article>
+        <article class="lookbook-card" data-reveal><img src="https://images.unsplash.com/photo-1520975954732-35dd22299614?auto=format&fit=crop&w=900&q=85" alt="Everyday polish"><h3>Everyday polish, styled lightly.</h3></article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
