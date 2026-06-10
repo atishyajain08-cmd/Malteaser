@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="catalog.js"></script>
   <script defer src="script.js"></script>
 </head>
 <body class="inner-page">
@@ -25,11 +28,8 @@
       <div class="page-hero__image" data-reveal><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1300&q=85" alt="Malteaser editorial lookbook"></div>
     </section>
     <section class="lookbook section">
-      <div class="lookbook-grid">
-        <article class="lookbook-card large" data-reveal><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=85" alt="Soft tailoring look"><h3>Soft tailoring for morning plans.</h3></article>
-        <article class="lookbook-card offset" data-reveal><img src="https://images.unsplash.com/photo-1496440737103-cd596325d314?auto=format&fit=crop&w=900&q=85" alt="Blush evening look"><h3>Blush notes after dark.</h3></article>
-        <article class="lookbook-card" data-reveal><img src="https://images.unsplash.com/photo-1520975954732-35dd22299614?auto=format&fit=crop&w=900&q=85" alt="Everyday polish"><h3>Everyday polish, styled lightly.</h3></article>
-      </div>
+      <p class="catalog-status" data-catalog-status>Loading lookbook...</p>
+      <div class="lookbook-grid" data-catalog-section="lookbook"></div>
     </section>
   </main>
 </body>

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "starter-blush-coord",
+    "title": "Blush Satin Co-ord",
+    "description": "Fluid satin separates with an easy elevated fit.",
+    "price": 2850,
+    "section": "new-arrivals",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "New Arrival",
+    "sort_order": 1
+  },
+  {
+    "id": "starter-goldline-midi",
+    "title": "Goldline Midi Set",
+    "description": "A polished midi silhouette with subtle gold detailing.",
+    "price": 3450,
+    "section": "new-arrivals",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Editor Pick",
+    "sort_order": 2
+  },
+  {
+    "id": "starter-casual-chic",
+    "title": "Casual Chic",
+    "description": "Easy silhouettes with polished finishes for everyday confidence.",
+    "price": 0,
+    "section": "collections",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Collection",
+    "sort_order": 1
+  },
+  {
+    "id": "starter-workwear",
+    "title": "Workwear Elegance",
+    "description": "Clean tailoring and soft structure for modern office dressing.",
+    "price": 0,
+    "section": "collections",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Collection",
+    "sort_order": 2
+  },
+  {
+    "id": "starter-lookbook-morning",
+    "title": "Soft Tailoring",
+    "description": "Soft tailoring for morning plans.",
+    "price": 0,
+    "section": "lookbook",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Lookbook",
+    "sort_order": 1
+  },
+  {
+    "id": "starter-lookbook-evening",
+    "title": "Blush After Dark",
+    "description": "Blush notes for evening dressing.",
+    "price": 0,
+    "section": "lookbook",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Lookbook",
+    "sort_order": 2
+  },
+  {
+    "id": "starter-aurelian",
+    "title": "Aurelian Wrap Dress",
+    "description": "A luminous wrap silhouette with a soft drape and adjustable waist.",
+    "price": 3250,
+    "section": "product",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Signature Product",
+    "sort_order": 1
+  }
+]

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100">
+  <rect width="900" height="1100" fill="#e8dccf"/>
+  <path d="M292 225 390 175c34 27 86 27 120 0l98 50 137 155-113 96-72-75v436H340V401l-72 75-113-96 137-155Z" fill="#fffdf9" stroke="#c9a86a" stroke-width="8"/>
+  <path d="M390 175c7 60 113 60 120 0" fill="none" stroke="#c9a86a" stroke-width="8"/>
+  <path d="M340 780h220" stroke="#e8dccf" stroke-width="5"/>
+  <text x="450" y="930" text-anchor="middle" fill="#222" font-family="Georgia, serif" font-size="46">Malteaser</text>
+  <text x="450" y="980" text-anchor="middle" fill="#8a7550" font-family="Arial, sans-serif" font-size="20">PRODUCT IMAGE PLACEHOLDER</text>
+</svg>

@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="catalog.js"></script>
   <script defer src="script.js"></script>
 </head>
 <body class="inner-page">
@@ -30,12 +33,8 @@
       <div class="page-hero__image" data-reveal><img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1300&q=85" alt="Malteaser collection campaign"></div>
     </section>
     <section class="page-band">
-      <div class="page-grid">
-        <article class="page-panel" data-reveal><img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&q=85" alt="Casual chic"><span class="mini-kicker">01</span><h3>Casual Chic</h3><p>Easy silhouettes with polished finishes for everyday confidence.</p><a class="text-button" href="shop.html">Shop Collection</a></article>
-        <article class="page-panel" data-reveal><img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=85" alt="Workwear elegance"><span class="mini-kicker">02</span><h3>Workwear Elegance</h3><p>Clean tailoring and soft structure for modern office dressing.</p><a class="text-button" href="shop.html">Shop Collection</a></article>
-        <article class="page-panel" data-reveal><img src="https://images.unsplash.com/photo-1494578379344-d6c710782a3d?auto=format&fit=crop&w=900&q=85" alt="Weekend styles"><span class="mini-kicker">03</span><h3>Weekend Styles</h3><p>Fresh, photogenic looks designed for movement and mood.</p><a class="text-button" href="shop.html">Shop Collection</a></article>
-        <article class="page-panel" data-reveal><img src="https://images.unsplash.com/photo-1513379733131-47fc74b45fc7?auto=format&fit=crop&w=900&q=85" alt="Evening edit"><span class="mini-kicker">04</span><h3>Evening Edit</h3><p>Elevated satin, shimmer accents, and sculpted evening pieces.</p><a class="text-button" href="shop.html">Shop Collection</a></article>
-      </div>
+      <p class="catalog-status" data-catalog-status>Loading collections...</p>
+      <div class="page-grid" data-catalog-section="collections"></div>
     </section>
   </main>
 </body>

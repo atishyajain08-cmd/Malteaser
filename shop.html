@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="catalog.js"></script>
   <script defer src="script.js"></script>
 </head>
 <body class="inner-page">
@@ -48,28 +51,8 @@
     </section>
 
     <section class="page-band">
-      <div class="product-grid">
-        <article class="product-card" data-reveal>
-          <a class="wishlist" href="wishlist.html" aria-label="Add to wishlist"><i data-lucide="heart"></i></a>
-          <img src="https://images.unsplash.com/photo-1550639525-c97d455acf70?auto=format&fit=crop&w=900&q=85" alt="Blush satin co-ord">
-          <div class="product-card__body"><span>New Arrival</span><h3>Blush Satin Co-ord</h3><p>Rs. 2,850</p><a class="text-button" href="product.html">View Product</a></div>
-        </article>
-        <article class="product-card" data-reveal>
-          <a class="wishlist" href="wishlist.html" aria-label="Add to wishlist"><i data-lucide="heart"></i></a>
-          <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=85" alt="Goldline midi set">
-          <div class="product-card__body"><span>Editor Pick</span><h3>Goldline Midi Set</h3><p>Rs. 3,450</p><a class="text-button" href="product.html">View Product</a></div>
-        </article>
-        <article class="product-card" data-reveal>
-          <a class="wishlist" href="wishlist.html" aria-label="Add to wishlist"><i data-lucide="heart"></i></a>
-          <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=900&q=85" alt="Charcoal luxe shirt">
-          <div class="product-card__body"><span>Best Seller</span><h3>Charcoal Luxe Shirt</h3><p>Rs. 1,950</p><a class="text-button" href="product.html">View Product</a></div>
-        </article>
-        <article class="product-card" data-reveal>
-          <a class="wishlist" href="wishlist.html" aria-label="Add to wishlist"><i data-lucide="heart"></i></a>
-          <img src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=900&q=85" alt="Aurelian wrap dress">
-          <div class="product-card__body"><span>Signature</span><h3>Aurelian Wrap Dress</h3><p>Rs. 3,250</p><a class="text-button" href="product.html">View Product</a></div>
-        </article>
-      </div>
+      <p class="catalog-status" data-catalog-status>Loading collection...</p>
+      <div class="product-grid" data-catalog-section="new-arrivals"></div>
     </section>
   </main>
 </body>
