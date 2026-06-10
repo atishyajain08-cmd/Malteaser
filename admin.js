@@ -17,6 +17,20 @@
     element.dataset.type = type;
   }
 
+  function isAdministrator(user) {
+    return user?.app_metadata?.role === "admin";
+  }
+
+  function escapeHtml(value) {
+    return String(value || "").replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#039;"
+    })[character]);
+  }
+
   function showDashboard() {
     authSection.hidden = true;
     dashboard.hidden = false;
@@ -32,33 +46,43 @@
   async function currentSession() {
     if (!client) return null;
     const { data } = await client.auth.getSession();
+    if (data.session && !isAdministrator(data.session.user)) {
+      await client.auth.signOut();
+      return null;
+    }
     return data.session;
   }
 
   async function uploadFiles(files, values) {
     const records = [];
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      const extension = file.name.split(".").pop().toLowerCase();
-      const path = `${Date.now()}-${crypto.randomUUID()}.${extension}`;
-      const { error: uploadError } = await client.storage.from("catalog").upload(path, file, {
-        cacheControl: "3600",
-        upsert: false
-      });
-      if (uploadError) throw uploadError;
+    try {
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
+        const extension = file.name.split(".").pop().toLowerCase();
+        const path = `${Date.now()}-${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await client.storage.from("catalog").upload(path, file, {
+          cacheControl: "3600",
+          upsert: false
+        });
+        if (uploadError) throw uploadError;
 
-      const { data: publicData } = client.storage.from("catalog").getPublicUrl(path);
-      records.push({
-        title: files.length > 1 ? `${values.title} ${index + 1}` : values.title,
-        description: values.description,
-        price: Number(values.price || 0),
-        section: values.section,
-        label: values.section === "new-arrivals" ? "New Arrival" : values.section === "product" ? "Product" : "Collection",
-        image_url: publicData.publicUrl,
-        storage_path: path,
-        is_active: true,
-        sort_order: index + 1
-      });
+        const { data: publicData } = client.storage.from("catalog").getPublicUrl(path);
+        records.push({
+          title: files.length > 1 ? `${values.title} ${index + 1}` : values.title,
+          description: values.description,
+          price: Number(values.price || 0),
+          section: values.section,
+          label: values.section === "new-arrivals" ? "New Arrival" : values.section === "product" ? "Product" : "Collection",
+          image_url: publicData.publicUrl,
+          storage_path: path,
+          is_active: true,
+          sort_order: index + 1
+        });
+      }
+    } catch (error) {
+      const uploadedPaths = records.map((record) => record.storage_path);
+      if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
+      throw error;
     }
     return records;
   }
@@ -74,9 +98,9 @@
     }
     itemsRoot.innerHTML = (data || []).map((item) => `
       <article class="admin-item">
-        <img src="${item.image_url || "assets/white-tshirt.svg"}" alt="${item.title}">
-        <div><strong>${item.title}</strong><span>${item.section.replace("-", " ")}</span></div>
-        <button class="icon-button" type="button" data-delete-id="${item.id}" data-storage-path="${item.storage_path || ""}" aria-label="Remove ${item.title}"><i data-lucide="trash-2"></i></button>
+        <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.section.replace("-", " "))}</span></div>
+        <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`).join("") || "<p>No uploaded collections yet.</p>";
     window.lucide?.createIcons();
   }
@@ -106,6 +130,10 @@
         })
       ]);
       if (result.error) throw result.error;
+      if (!isAdministrator(result.data.user)) {
+        await client.auth.signOut();
+        throw new Error("This account does not have administrator access.");
+      }
       message(loginMessage, "");
       showDashboard();
     } catch (error) {
@@ -121,15 +149,22 @@
     const formData = new FormData(addForm);
     const files = formData.getAll("photos").filter((file) => file.size > 0);
     const values = Object.fromEntries(formData);
+    const submitButton = addForm.querySelector("button[type='submit']");
+    submitButton.disabled = true;
     message(addMessage, "Uploading photos...");
+    let records = [];
     try {
-      const records = await uploadFiles(files, values);
+      records = await uploadFiles(files, values);
       const { error } = await client.from("catalog_items").insert(records);
       if (error) throw error;
       addForm.reset();
       message(addMessage, `${records.length} photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
     } catch (error) {
+      const uploadedPaths = records.map((record) => record.storage_path).filter(Boolean);
+      if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
       message(addMessage, error.message, "error");
+    } finally {
+      submitButton.disabled = false;
     }
   });
 

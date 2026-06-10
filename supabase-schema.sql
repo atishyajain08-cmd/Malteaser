@@ -16,30 +16,46 @@ create table if not exists public.catalog_items (
 
 alter table public.catalog_items enable row level security;
 
+drop policy if exists "Public catalog read" on public.catalog_items;
+drop policy if exists "Admin catalog read" on public.catalog_items;
+drop policy if exists "Admin catalog insert" on public.catalog_items;
+drop policy if exists "Admin catalog update" on public.catalog_items;
+drop policy if exists "Admin catalog delete" on public.catalog_items;
+
 create policy "Public catalog read"
 on public.catalog_items for select
 to anon, authenticated
-using (is_active = true or auth.role() = 'authenticated');
+using (is_active = true);
+
+create policy "Admin catalog read"
+on public.catalog_items for select
+to authenticated
+using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 create policy "Admin catalog insert"
 on public.catalog_items for insert
 to authenticated
-with check (true);
+with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 create policy "Admin catalog update"
 on public.catalog_items for update
 to authenticated
-using (true)
-with check (true);
+using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
+with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 create policy "Admin catalog delete"
 on public.catalog_items for delete
 to authenticated
-using (true);
+using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 insert into storage.buckets (id, name, public)
 values ('catalog', 'catalog', true)
 on conflict (id) do update set public = true;
+
+drop policy if exists "Public catalog image read" on storage.objects;
+drop policy if exists "Admin catalog image upload" on storage.objects;
+drop policy if exists "Admin catalog image update" on storage.objects;
+drop policy if exists "Admin catalog image delete" on storage.objects;
 
 create policy "Public catalog image read"
 on storage.objects for select
@@ -49,15 +65,27 @@ using (bucket_id = 'catalog');
 create policy "Admin catalog image upload"
 on storage.objects for insert
 to authenticated
-with check (bucket_id = 'catalog');
+with check (
+  bucket_id = 'catalog'
+  and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+);
 
 create policy "Admin catalog image update"
 on storage.objects for update
 to authenticated
-using (bucket_id = 'catalog')
-with check (bucket_id = 'catalog');
+using (
+  bucket_id = 'catalog'
+  and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+)
+with check (
+  bucket_id = 'catalog'
+  and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+);
 
 create policy "Admin catalog image delete"
 on storage.objects for delete
 to authenticated
-using (bucket_id = 'catalog');
+using (
+  bucket_id = 'catalog'
+  and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+);
