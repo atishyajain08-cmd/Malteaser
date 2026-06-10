@@ -94,12 +94,25 @@
   loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!client) return;
+    const submitButton = loginForm.querySelector("button[type='submit']");
+    submitButton.disabled = true;
     message(loginMessage, "Signing in...");
     const values = Object.fromEntries(new FormData(loginForm));
-    const { error } = await client.auth.signInWithPassword({ email: values.email, password: values.password });
-    if (error) return message(loginMessage, error.message, "error");
-    message(loginMessage, "");
-    showDashboard();
+    try {
+      const result = await Promise.race([
+        client.auth.signInWithPassword({ email: values.email.trim(), password: values.password }),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Sign-in took too long. Close other Malteaser Admin tabs, refresh this page, and try again.")), 12000);
+        })
+      ]);
+      if (result.error) throw result.error;
+      message(loginMessage, "");
+      showDashboard();
+    } catch (error) {
+      message(loginMessage, error.message || "Could not sign in. Please try again.", "error");
+    } finally {
+      submitButton.disabled = false;
+    }
   });
 
   addForm?.addEventListener("submit", async (event) => {

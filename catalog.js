@@ -1,7 +1,24 @@
 (function () {
   const config = window.MALTEASER_SUPABASE || {};
   const isConfigured = Boolean(config.url && config.anonKey && window.supabase);
-  const client = isConfigured ? window.supabase.createClient(config.url, config.anonKey) : null;
+  const isAdmin = location.pathname.endsWith("/admin.html");
+  const adminTabKey = "malteaser_admin_tab_id";
+  let storageKey;
+  if (isAdmin) {
+    storageKey = sessionStorage.getItem(adminTabKey);
+    if (!storageKey) {
+      storageKey = crypto.randomUUID();
+      sessionStorage.setItem(adminTabKey, storageKey);
+    }
+  }
+  const client = isConfigured ? window.supabase.createClient(config.url, config.anonKey, {
+    auth: {
+      detectSessionInUrl: false,
+      persistSession: isAdmin,
+      storage: isAdmin ? sessionStorage : undefined,
+      storageKey: isAdmin ? `malteaser-admin-${storageKey}` : "malteaser-catalog"
+    }
+  }) : null;
   const localKey = "malteaser_catalog_items";
 
   function formatPrice(value) {
