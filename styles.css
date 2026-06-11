@@ -803,6 +803,53 @@ h3 {
   color: var(--charcoal);
 }
 
+.cart-confirmation {
+  position: fixed;
+  right: clamp(14px, 3vw, 34px);
+  bottom: clamp(14px, 3vw, 34px);
+  z-index: 80;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  width: min(390px, calc(100vw - 28px));
+  padding: 18px 20px;
+  background: var(--charcoal);
+  color: var(--ivory);
+  box-shadow: 0 18px 55px rgba(34, 34, 34, 0.28);
+  opacity: 0;
+  transform: translateY(18px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.cart-confirmation.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.cart-confirmation div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cart-confirmation span {
+  overflow: hidden;
+  color: rgba(248, 244, 238, 0.72);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cart-confirmation a {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .text-button {
   width: fit-content;
   border: 0;

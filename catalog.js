@@ -86,6 +86,7 @@
     if (existing) existing.quantity = Number(existing.quantity || 1) + 1;
     else cart.push({ ...normalizedItem(item), quantity: 1 });
     writeStored(cartKey, cart);
+    showCartConfirmation(item);
   }
 
   function toggleWishlist(item) {
@@ -187,15 +188,42 @@
     }, 1200);
   }
 
+  function showCartConfirmation(item) {
+    let notice = document.querySelector("[data-cart-confirmation]");
+    if (!notice) {
+      notice = document.createElement("div");
+      notice.className = "cart-confirmation";
+      notice.dataset.cartConfirmation = "";
+      notice.setAttribute("role", "status");
+      notice.setAttribute("aria-live", "polite");
+      document.body.appendChild(notice);
+    }
+    notice.innerHTML = `
+      <div>
+        <strong>Added to your bag</strong>
+        <span>${escapeHtml(item.title)}</span>
+      </div>
+      <a href="cart.html">View Bag</a>`;
+    notice.classList.remove("is-visible");
+    requestAnimationFrame(() => notice.classList.add("is-visible"));
+    clearTimeout(notice.hideTimer);
+    notice.hideTimer = setTimeout(() => notice.classList.remove("is-visible"), 3500);
+  }
+
   document.addEventListener("click", (event) => {
     const cartButton = event.target.closest("[data-cart-item]");
     const wishlistButton = event.target.closest("[data-wishlist-item]");
     const removeCartButton = event.target.closest("[data-remove-cart]");
 
     if (cartButton) {
-      addToCart(JSON.parse(decodeURIComponent(cartButton.dataset.cartItem)));
-      flashButton(cartButton, "Added");
-      renderCart();
+      event.preventDefault();
+      try {
+        addToCart(JSON.parse(decodeURIComponent(cartButton.dataset.cartItem)));
+        flashButton(cartButton, "Added");
+        renderCart();
+      } catch (error) {
+        console.error("Could not add item to cart.", error);
+      }
     }
 
     if (wishlistButton) {
