@@ -1555,15 +1555,21 @@ blockquote cite {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-top: 5px;
-  border: 0;
-  border-bottom: 1px solid currentColor;
-  padding: 3px 0;
-  background: transparent;
-  color: #9d3028;
+  min-height: 38px;
+  margin-top: 7px;
+  border: 1px solid #9d3028;
+  padding: 8px 13px;
+  background: #9d3028;
+  color: #fff;
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.cart-line__delete:hover {
+  background: transparent;
+  color: #9d3028;
 }
 
 .cart-line__delete svg {

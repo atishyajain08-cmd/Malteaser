@@ -161,7 +161,7 @@
     if (!root) return;
     const cart = readStored(cartKey);
     root.innerHTML = cart.map((item) => `
-      <article class="cart-line">
+      <article class="cart-line" data-cart-row="${escapeHtml(item.id)}">
         <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}">
         <div class="cart-line__details">
           <h3>${escapeHtml(item.title)}</h3>
@@ -172,6 +172,7 @@
       </article>`).join("") || '<div class="empty-state"><h2>Your cart is empty.</h2><a class="button button--dark" href="shop.html">Explore Products</a></div>';
     const total = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
     if (totalRoot) totalRoot.textContent = formatPrice(total);
+    window.lucide?.createIcons();
   }
 
   function renderWishlist() {
@@ -291,5 +292,17 @@
     renderCart();
     renderWishlist();
     renderCatalog();
+  });
+
+  window.addEventListener("pageshow", () => {
+    updateHeaderCounts();
+    renderCart();
+  });
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === cartKey) {
+      updateHeaderCounts();
+      renderCart();
+    }
   });
 })();
