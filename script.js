@@ -1,9 +1,39 @@
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+function createBrandLoader() {
+  const existing = document.querySelector(".loader");
+  if (existing) return existing;
+  const loader = document.createElement("div");
+  loader.className = "loader";
+  loader.setAttribute("role", "status");
+  loader.setAttribute("aria-label", "Malteaser is preparing the collection");
+  loader.innerHTML = `
+    <div class="loader__intro">
+      <span class="loader__cue">Start writing</span>
+      <div class="loader__word" aria-hidden="true">
+        ${[..."Malteaser"].map((letter, index) => `<span style="--letter:${index}">${letter}</span>`).join("")}
+      </div>
+      <span class="loader__tagline">Elevated women's fashion</span>
+    </div>`;
+  document.body.prepend(loader);
+  return loader;
+}
+
+const brandLoader = createBrandLoader();
+const loaderStartedAt = performance.now();
+
+function hideBrandLoader() {
+  const remaining = Math.max(0, 1050 - (performance.now() - loaderStartedAt));
+  window.setTimeout(() => brandLoader?.classList.add("is-hidden"), remaining);
+}
+
 window.addEventListener("load", () => {
-  document.querySelector(".loader")?.classList.add("is-hidden");
+  if (!document.querySelector("[data-catalog-section], [data-product-detail]")) hideBrandLoader();
   window.lucide?.createIcons();
 });
+
+window.addEventListener("malteaser:catalog-ready", hideBrandLoader);
+window.setTimeout(hideBrandLoader, 4500);
 
 const header = document.querySelector(".site-header");
 const revealItems = document.querySelectorAll("[data-reveal]");
@@ -34,7 +64,14 @@ const revealObserver = new IntersectionObserver(
 revealItems.forEach((item) => revealObserver.observe(item));
 
 function updateHeader() {
-  header?.classList.toggle("is-scrolled", window.scrollY > 24);
+  if (!header || document.body.classList.contains("inner-page")) return;
+  const progress = clamp(window.scrollY / 160, 0, 1);
+  const colorValue = Math.round(248 - progress * 214);
+  header.style.setProperty("--header-bg-alpha", (progress * 0.9).toFixed(3));
+  header.style.setProperty("--header-blur", `${Math.round(progress * 18)}px`);
+  header.style.setProperty("--header-shadow-alpha", (progress * 0.08).toFixed(3));
+  header.style.color = `rgb(${colorValue}, ${Math.round(244 - progress * 210)}, ${Math.round(238 - progress * 204)})`;
+  header.classList.toggle("is-scrolled", progress > 0.62);
 }
 
 function updateParallax() {
@@ -172,8 +209,12 @@ document.querySelectorAll(".thumb").forEach((thumb) => {
 document.querySelectorAll(".sizes button, .swatch").forEach((button) => {
   button.addEventListener("click", () => {
     const group = button.classList.contains("swatch") ? ".swatch" : ".sizes button";
-    document.querySelectorAll(group).forEach((item) => item.classList.remove("active"));
+    document.querySelectorAll(group).forEach((item) => {
+      item.classList.remove("active");
+      if (item.matches(".sizes button")) item.setAttribute("aria-pressed", "false");
+    });
     button.classList.add("active");
+    if (button.matches(".sizes button")) button.setAttribute("aria-pressed", "true");
   });
 });
 

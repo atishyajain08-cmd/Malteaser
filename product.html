@@ -9,12 +9,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=cart-fix-4">
+  <link rel="stylesheet" href="styles.css?v=brand-loader-size-2">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=cart-fix-4"></script>
-  <script defer src="script.js"></script>
+  <script defer src="catalog.js?v=brand-loader-size-2"></script>
+  <script defer src="script.js?v=brand-loader-size-2"></script>
 </head>
 <body class="inner-page">
   <header class="site-header is-scrolled">
@@ -28,9 +28,17 @@
         <div class="product-hero-image"><img id="mainProductImage" data-product-image src="assets/white-tshirt.svg" alt="Malteaser product"><div class="preview-badge"><i data-lucide="shirt"></i> Product preview</div></div>
       </div>
       <div class="product-info" data-reveal>
-        <p class="eyebrow">Signature product</p><h1 data-product-title>Loading product...</h1><p class="price" data-product-price></p><p class="product-copy" data-product-description></p>
+        <p class="eyebrow">Signature product</p><h1 data-product-title></h1><p class="price" data-product-price></p><p class="product-copy" data-product-description></p>
         <div class="swatches"><button class="swatch blush active" aria-label="Muted blush pink"></button><button class="swatch ivory" aria-label="Warm ivory"></button><button class="swatch charcoal" aria-label="Deep charcoal"></button></div>
-        <div class="size-guide"><div class="size-guide__top"><span>Size</span><a class="text-button" href="size-guide.html">Size Guide</a></div><div class="sizes"><button>XS</button><button>S</button><button class="active">M</button><button>L</button><button>XL</button></div></div>
+        <div class="size-guide">
+          <div class="size-guide__top"><span>Select size</span><a class="text-button" href="size-guide.html">Size Chart</a></div>
+          <div class="sizes" role="group" aria-label="Select size">
+            <button type="button" data-size="S" aria-pressed="false">S</button>
+            <button type="button" data-size="M" aria-pressed="false">M</button>
+            <button type="button" data-size="L" aria-pressed="false">L</button>
+            <button type="button" data-size="XL" aria-pressed="false">XL</button>
+          </div>
+        </div>
         <details open><summary>Fabric and Material</summary><p>Premium crepe blend, smooth satin lining, breathable structure, soft-touch finish.</p></details>
         <details><summary>Styling Recommendation</summary><p>Pair with gold hoops, a low bun, and barely-there heels for a clean evening silhouette.</p></details>
         <div class="checkout-panel">

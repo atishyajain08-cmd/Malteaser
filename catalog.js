@@ -59,7 +59,8 @@
       price: Number(item.price || 0),
       section: item.section || "product",
       label: item.label || "Malteaser",
-      image_url: item.image_url || "assets/white-tshirt.svg"
+      image_url: item.image_url || "assets/white-tshirt.svg",
+      size: item.size || ""
     };
   }
 
@@ -82,11 +83,14 @@
 
   function addToCart(item) {
     const cart = readStored(cartKey);
-    const existing = cart.find((entry) => String(entry.id) === String(item.id));
+    const normalized = normalizedItem(item);
+    const existing = cart.find((entry) =>
+      String(entry.id) === normalized.id && String(entry.size || "") === normalized.size
+    );
     if (existing) existing.quantity = Number(existing.quantity || 1) + 1;
-    else cart.push({ ...normalizedItem(item), quantity: 1 });
+    else cart.push({ ...normalized, quantity: 1 });
     writeStored(cartKey, cart);
-    showCartConfirmation(item);
+    showCartConfirmation(normalized);
   }
 
   function toggleWishlist(item) {
@@ -165,8 +169,8 @@
         <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}">
         <div class="cart-line__details">
           <h3>${escapeHtml(item.title)}</h3>
-          <p>Quantity: ${Number(item.quantity || 1)}</p>
-          <button class="cart-line__delete" type="button" data-remove-cart="${escapeHtml(item.id)}" aria-label="Delete ${escapeHtml(item.title)} from bag"><i data-lucide="trash-2"></i> Delete</button>
+          <p>Size: ${escapeHtml(item.size || "M")} &nbsp; Quantity: ${Number(item.quantity || 1)}</p>
+          <button class="cart-line__delete" type="button" data-remove-cart="${escapeHtml(`${item.id}::${item.size || ""}`)}" aria-label="Delete ${escapeHtml(item.title)} size ${escapeHtml(item.size || "M")} from bag"><i data-lucide="trash-2"></i> Delete</button>
         </div>
         <strong>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</strong>
       </article>`).join("") || '<div class="empty-state"><h2>Your cart is empty.</h2><a class="button button--dark" href="shop.html">Explore Products</a></div>';
@@ -205,7 +209,7 @@
     notice.innerHTML = `
       <div>
         <strong>Added to your bag</strong>
-        <span>${escapeHtml(item.title)}</span>
+        <span>${escapeHtml(item.title)} · Size ${escapeHtml(item.size)}</span>
       </div>
       <a href="cart.html">View Bag</a>`;
     notice.classList.remove("is-visible");
@@ -222,9 +226,15 @@
     if (cartButton) {
       event.preventDefault();
       try {
-        addToCart(JSON.parse(decodeURIComponent(cartButton.dataset.cartItem)));
-        flashButton(cartButton, "Added");
-        renderCart();
+        const item = JSON.parse(decodeURIComponent(cartButton.dataset.cartItem));
+        const selectedSize = cartButton.closest("[data-product-detail]")?.querySelector(".sizes button.active")?.dataset.size;
+        if (selectedSize) {
+          addToCart({ ...item, size: selectedSize });
+          flashButton(cartButton, "Added");
+          renderCart();
+        } else {
+          showSizePicker(item, cartButton);
+        }
       } catch (error) {
         console.error("Could not add item to cart.", error);
       }
@@ -245,11 +255,51 @@
 
     if (removeCartButton) {
       event.preventDefault();
-      writeStored(cartKey, readStored(cartKey).filter((item) => String(item.id) !== removeCartButton.dataset.removeCart));
+      const [removeId, removeSize = ""] = removeCartButton.dataset.removeCart.split("::");
+      writeStored(cartKey, readStored(cartKey).filter((item) =>
+        !(String(item.id) === removeId && String(item.size || "") === removeSize)
+      ));
       renderCart();
       window.lucide?.createIcons();
     }
   });
+
+  function showSizePicker(item, sourceButton) {
+    let picker = document.querySelector("[data-size-picker]");
+    if (!picker) {
+      picker = document.createElement("dialog");
+      picker.className = "size-picker";
+      picker.dataset.sizePicker = "";
+      picker.innerHTML = `
+        <button class="size-picker__close" type="button" data-close-size-picker aria-label="Close size selection"><i data-lucide="x"></i></button>
+        <p class="eyebrow">Choose your fit</p>
+        <h2>Select a size</h2>
+        <p data-size-picker-product></p>
+        <div class="sizes" role="group" aria-label="Select product size">
+          <button type="button" data-picker-size="S">S</button>
+          <button type="button" data-picker-size="M">M</button>
+          <button type="button" data-picker-size="L">L</button>
+          <button type="button" data-picker-size="XL">XL</button>
+        </div>
+        <a class="text-button" href="size-guide.html">View Size Chart</a>`;
+      document.body.appendChild(picker);
+      picker.addEventListener("click", (pickerEvent) => {
+        const sizeButton = pickerEvent.target.closest("[data-picker-size]");
+        if (sizeButton) {
+          addToCart({ ...picker.pendingItem, size: sizeButton.dataset.pickerSize });
+          flashButton(picker.sourceButton, "Added");
+          renderCart();
+          picker.close();
+        }
+        if (pickerEvent.target.closest("[data-close-size-picker]") || pickerEvent.target === picker) picker.close();
+      });
+    }
+    picker.pendingItem = item;
+    picker.sourceButton = sourceButton;
+    picker.querySelector("[data-size-picker-product]").textContent = item.title;
+    picker.showModal();
+    window.lucide?.createIcons();
+  }
 
   async function renderCatalog() {
     const status = document.querySelector("[data-catalog-status]");
@@ -270,12 +320,14 @@
       updateHeaderCounts();
       renderCart();
       renderWishlist();
+      window.dispatchEvent(new CustomEvent("malteaser:catalog-ready"));
     } catch (error) {
       if (status) {
         status.hidden = false;
         status.textContent = "The collection could not be loaded. Please refresh.";
       }
       console.error(error);
+      window.dispatchEvent(new CustomEvent("malteaser:catalog-ready"));
     }
   }
 
