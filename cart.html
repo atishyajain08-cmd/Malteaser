@@ -10,14 +10,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script defer src="assets/vendor/supabase.min.js"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="catalog.js"></script>
   <script defer src="script.js"></script>
 </head>
 <body class="inner-page">
   <header class="site-header is-scrolled"><a href="index.html" class="brand brand--logo" aria-label="Malteaser home"><img src="assets/malteaser-logo.png" alt=""></a><nav class="main-nav" aria-label="Primary navigation"><a href="shop.html">New Arrivals</a><a href="collections.html">Collections</a><a href="lookbook.html">Lookbook</a><a href="product.html">Product</a></nav><div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button" href="login.html" aria-label="Customer login"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div></header>
   <main class="page-band" style="padding-top: 150px;">
     <div class="split-layout">
-      <section data-reveal><p class="eyebrow">Shopping bag</p><h1>Your cart</h1><div class="cart-line"><img src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=300&q=85" alt="Aurelian Wrap Dress"><div><h3>Aurelian Wrap Dress</h3><p>Size M - Blush</p></div><strong>Rs. 3,250</strong></div><div class="cart-line"><img src="https://images.unsplash.com/photo-1550639525-c97d455acf70?auto=format&fit=crop&w=300&q=85" alt="Blush Satin Co-ord"><div><h3>Blush Satin Co-ord</h3><p>Size S - Blush</p></div><strong>Rs. 2,850</strong></div></section>
-      <aside class="checkout-summary" data-reveal><p class="eyebrow">Order summary</p><h2>Rs. 6,100</h2><p>Includes premium packaging. Shipping and taxes calculated at checkout.</p><a href="checkout.html" class="button button--gold magnetic">Checkout</a></aside>
+      <section data-reveal><p class="eyebrow">Shopping bag</p><h1>Your cart</h1><div data-cart-items></div></section>
+      <aside class="checkout-summary" data-reveal><p class="eyebrow">Order summary</p><h2 data-cart-total>Rs. 0</h2><p>Includes premium packaging. Shipping and taxes calculated at checkout.</p><a href="checkout.html" class="button button--gold magnetic">Checkout</a></aside>
     </div>
   </main>
 </body>

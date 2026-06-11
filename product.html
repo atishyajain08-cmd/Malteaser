@@ -33,9 +33,17 @@
         <div class="size-guide"><div class="size-guide__top"><span>Size</span><a class="text-button" href="size-guide.html">Size Guide</a></div><div class="sizes"><button>XS</button><button>S</button><button class="active">M</button><button>L</button><button>XL</button></div></div>
         <details open><summary>Fabric and Material</summary><p>Premium crepe blend, smooth satin lining, breathable structure, soft-touch finish.</p></details>
         <details><summary>Styling Recommendation</summary><p>Pair with gold hoops, a low bun, and barely-there heels for a clean evening silhouette.</p></details>
-        <div class="checkout-panel"><a class="button button--dark magnetic" href="cart.html">Add to Bag</a><a class="button button--gold magnetic" href="checkout.html">Buy Now</a></div>
+        <div class="checkout-panel">
+          <button class="button button--dark magnetic" type="button" data-product-action="cart"><i data-lucide="shopping-bag"></i> Add to Cart</button>
+          <button class="button button--light magnetic" type="button" data-product-action="wishlist"><i data-lucide="heart"></i> Wishlist</button>
+          <a class="button button--gold magnetic" href="checkout.html">Buy Now</a>
+        </div>
       </div>
     </div>
+    <section class="product-more">
+      <div class="section-heading compact"><p class="eyebrow">More to review</p><h2>Explore the product edit.</h2></div>
+      <div class="product-grid" data-catalog-section="product"></div>
+    </section>
   </main>
 </body>
 </html>
