@@ -799,10 +799,6 @@ h3 {
   box-shadow: var(--shadow);
 }
 
-.cart-line .icon-button {
-  color: var(--charcoal);
-}
-
 .cart-confirmation {
   position: fixed;
   right: clamp(14px, 3vw, 34px);
@@ -1530,7 +1526,7 @@ blockquote cite {
 
 .cart-line {
   display: grid;
-  grid-template-columns: 110px 1fr auto auto;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
   gap: 18px;
   align-items: center;
   padding: 18px 0;
@@ -1539,6 +1535,40 @@ blockquote cite {
 
 .cart-line img {
   aspect-ratio: 1;
+  object-fit: contain;
+  background: var(--beige);
+}
+
+.cart-line__details {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cart-line__details h3,
+.cart-line__details p {
+  margin: 0;
+}
+
+.cart-line__delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 5px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 3px 0;
+  background: transparent;
+  color: #9d3028;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cart-line__delete svg {
+  width: 15px;
+  height: 15px;
 }
 
 .checkout-summary {
@@ -2125,11 +2155,6 @@ blockquote cite {
 
   .cart-line strong {
     grid-column: 2;
-  }
-
-  .cart-line .icon-button {
-    grid-column: 2;
-    justify-self: start;
   }
 
   .admin-shell {

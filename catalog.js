@@ -163,9 +163,12 @@
     root.innerHTML = cart.map((item) => `
       <article class="cart-line">
         <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}">
-        <div><h3>${escapeHtml(item.title)}</h3><p>Quantity: ${Number(item.quantity || 1)}</p></div>
+        <div class="cart-line__details">
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>Quantity: ${Number(item.quantity || 1)}</p>
+          <button class="cart-line__delete" type="button" data-remove-cart="${escapeHtml(item.id)}" aria-label="Delete ${escapeHtml(item.title)} from bag"><i data-lucide="trash-2"></i> Delete</button>
+        </div>
         <strong>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</strong>
-        <button class="icon-button" type="button" data-remove-cart="${escapeHtml(item.id)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`).join("") || '<div class="empty-state"><h2>Your cart is empty.</h2><a class="button button--dark" href="shop.html">Explore Products</a></div>';
     const total = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
     if (totalRoot) totalRoot.textContent = formatPrice(total);
@@ -240,6 +243,7 @@
     }
 
     if (removeCartButton) {
+      event.preventDefault();
       writeStored(cartKey, readStored(cartKey).filter((item) => String(item.id) !== removeCartButton.dataset.removeCart));
       renderCart();
       window.lucide?.createIcons();
