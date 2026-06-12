@@ -34,6 +34,17 @@
     })[character]);
   }
 
+  function inventoryFromDescription(description) {
+    const match = String(description || "").match(/\[malteaser_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]/);
+    return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]) } : null;
+  }
+
+  function descriptionWithInventory(description, values) {
+    const clean = String(description || "").replace(/\s*\[malteaser_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "").trim();
+    const stock = `[malteaser_stock:S=${Number(values.stock_s)},M=${Number(values.stock_m)},L=${Number(values.stock_l)},XL=${Number(values.stock_xl)}]`;
+    return clean ? `${clean}\n\n${stock}` : stock;
+  }
+
   function showDashboard() {
     authSection.hidden = true;
     dashboard.hidden = false;
@@ -72,7 +83,7 @@
         const { data: publicData } = client.storage.from("catalog").getPublicUrl(path);
         records.push({
           title: files.length > 1 ? `${values.title} ${index + 1}` : values.title,
-          description: values.description,
+          description: descriptionWithInventory(values.description, values),
           price: Number(values.price || 0),
           section: values.section,
           label: values.section === "new-arrivals"
@@ -101,12 +112,18 @@
       message(removeMessage, error.message, "error");
       return;
     }
-    itemsRoot.innerHTML = (data || []).map((item) => `
+    itemsRoot.innerHTML = (data || []).map((item) => {
+      const inventory = inventoryFromDescription(item.description);
+      const stockText = inventory
+        ? `S ${inventory.S} · M ${inventory.M} · L ${inventory.L} · XL ${inventory.XL}`
+        : "Size stock not set";
+      return `
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
-        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.section.replace("-", " "))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span></div>
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.section.replace("-", " "))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
         <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
-      </article>`).join("") || "<p>No uploaded collections yet.</p>";
+      </article>`;
+    }).join("") || "<p>No uploaded collections yet.</p>";
     window.lucide?.createIcons();
   }
 

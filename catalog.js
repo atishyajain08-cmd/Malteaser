@@ -56,16 +56,26 @@
     updateHeaderCounts();
   }
 
+  function inventoryFromDescription(description) {
+    const match = String(description || "").match(/\[malteaser_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]/);
+    return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]) } : null;
+  }
+
+  function cleanDescription(description) {
+    return String(description || "").replace(/\s*\[malteaser_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "").trim();
+  }
+
   function normalizedItem(item) {
     return {
       id: String(item.id),
       title: item.title || "Malteaser Product",
-      description: item.description || "",
+      description: cleanDescription(item.description),
       price: Number(item.price || 0),
       section: item.section || "product",
       label: item.label || "Malteaser",
       image_url: item.image_url || "assets/white-tshirt.svg",
-      size: item.size || ""
+      size: item.size || "",
+      inventory: item.inventory || inventoryFromDescription(item.description)
     };
   }
 
@@ -92,10 +102,17 @@
     const existing = cart.find((entry) =>
       String(entry.id) === normalized.id && String(entry.size || "") === normalized.size
     );
-    if (existing) existing.quantity = Number(existing.quantity || 1) + 1;
+    const available = normalized.inventory?.[normalized.size];
+    const nextQuantity = Number(existing?.quantity || 0) + 1;
+    if (Number.isFinite(available) && nextQuantity > available) {
+      showStockNotice(normalized, available);
+      return false;
+    }
+    if (existing) existing.quantity = nextQuantity;
     else cart.push({ ...normalized, quantity: 1 });
     writeStored(cartKey, cart);
     showCartConfirmation(normalized);
+    return true;
   }
 
   function toggleWishlist(item) {
@@ -183,7 +200,19 @@
     root.querySelector("[data-product-image]").alt = item.title;
     root.querySelector("[data-product-title]").textContent = item.title;
     root.querySelector("[data-product-price]").textContent = formatPrice(item.price);
-    root.querySelector("[data-product-description]").textContent = item.description || "";
+    root.querySelector("[data-product-description]").textContent = cleanDescription(item.description);
+    const inventory = item.inventory || inventoryFromDescription(item.description);
+    root.querySelectorAll("[data-size]").forEach((button) => {
+      const stock = inventory?.[button.dataset.size];
+      const unavailable = inventory && stock <= 0;
+      button.disabled = Boolean(unavailable);
+      button.classList.toggle("is-unavailable", Boolean(unavailable));
+      button.setAttribute("aria-label", unavailable ? `${button.dataset.size} sold out` : `${button.dataset.size}${inventory ? `, ${stock} pieces available` : ""}`);
+      if (unavailable && button.classList.contains("active")) {
+        button.classList.remove("active");
+        button.setAttribute("aria-pressed", "false");
+      }
+    });
     root.querySelectorAll("[data-product-action]").forEach((button) => {
       button.dataset[button.dataset.productAction === "cart" ? "cartItem" : "wishlistItem"] = itemData(item);
     });
@@ -248,6 +277,28 @@
     notice.hideTimer = setTimeout(() => notice.classList.remove("is-visible"), 3500);
   }
 
+  function showStockNotice(item, available) {
+    let notice = document.querySelector("[data-cart-confirmation]");
+    if (!notice) {
+      notice = document.createElement("div");
+      notice.className = "cart-confirmation";
+      notice.dataset.cartConfirmation = "";
+      notice.setAttribute("role", "status");
+      notice.setAttribute("aria-live", "polite");
+      document.body.appendChild(notice);
+    }
+    notice.innerHTML = `
+      <div>
+        <strong>Stock limit reached</strong>
+        <span>${escapeHtml(item.title)} · Size ${escapeHtml(item.size)} · ${available} available</span>
+      </div>
+      <a href="cart.html">View Bag</a>`;
+    notice.classList.remove("is-visible");
+    requestAnimationFrame(() => notice.classList.add("is-visible"));
+    clearTimeout(notice.hideTimer);
+    notice.hideTimer = setTimeout(() => notice.classList.remove("is-visible"), 3500);
+  }
+
   document.addEventListener("click", (event) => {
     const cartButton = event.target.closest("[data-cart-item]");
     const wishlistButton = event.target.closest("[data-wishlist-item]");
@@ -271,9 +322,10 @@
         const item = JSON.parse(decodeURIComponent(cartButton.dataset.cartItem));
         const selectedSize = cartButton.closest("[data-product-detail]")?.querySelector(".sizes button.active")?.dataset.size;
         if (selectedSize) {
-          addToCart({ ...item, size: selectedSize });
-          flashButton(cartButton, "Added");
-          renderCart();
+          if (addToCart({ ...item, size: selectedSize })) {
+            flashButton(cartButton, "Added");
+            renderCart();
+          }
         } else {
           showSizePicker(item, cartButton);
         }
@@ -328,10 +380,11 @@
       picker.addEventListener("click", (pickerEvent) => {
         const sizeButton = pickerEvent.target.closest("[data-picker-size]");
         if (sizeButton) {
-          addToCart({ ...picker.pendingItem, size: sizeButton.dataset.pickerSize });
-          flashButton(picker.sourceButton, "Added");
-          renderCart();
-          picker.close();
+          if (addToCart({ ...picker.pendingItem, size: sizeButton.dataset.pickerSize })) {
+            flashButton(picker.sourceButton, "Added");
+            renderCart();
+            picker.close();
+          }
         }
         if (pickerEvent.target.closest("[data-close-size-picker]") || pickerEvent.target === picker) picker.close();
       });
@@ -339,6 +392,14 @@
     picker.pendingItem = item;
     picker.sourceButton = sourceButton;
     picker.querySelector("[data-size-picker-product]").textContent = item.title;
+    const inventory = item.inventory || inventoryFromDescription(item.description);
+    picker.querySelectorAll("[data-picker-size]").forEach((button) => {
+      const stock = inventory?.[button.dataset.pickerSize];
+      const unavailable = inventory && stock <= 0;
+      button.disabled = Boolean(unavailable);
+      button.classList.toggle("is-unavailable", Boolean(unavailable));
+      button.title = unavailable ? "Sold out" : inventory ? `${stock} pieces available` : "";
+    });
     picker.showModal();
     window.lucide?.createIcons();
   }

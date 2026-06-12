@@ -1320,6 +1320,13 @@ h3 {
   color: var(--charcoal);
 }
 
+.sizes button:disabled,
+.sizes button.is-unavailable {
+  cursor: not-allowed;
+  opacity: 0.34;
+  text-decoration: line-through;
+}
+
 .size-picker {
   position: relative;
   width: min(460px, calc(100vw - 28px));
@@ -1871,6 +1878,20 @@ blockquote cite {
   box-shadow: var(--shadow);
 }
 
+.admin-stock {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  border: 1px solid rgba(34, 34, 34, 0.12);
+  padding: 18px;
+}
+
+.admin-stock legend {
+  padding: 0 8px;
+  font-weight: 800;
+}
+
 .admin-form label {
   display: grid;
   gap: 8px;
@@ -1987,6 +2008,12 @@ blockquote cite {
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.admin-item small {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .admin-message {
@@ -2316,6 +2343,10 @@ blockquote cite {
 
   .arrival-filter-bar .tab-strip {
     width: 100%;
+  }
+
+  .admin-stock {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .size-chart-panel h1 {
