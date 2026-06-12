@@ -9,11 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=arrival-filters-1">
+  <link rel="stylesheet" href="styles.css?v=arrival-filters-2">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=arrival-filters-1"></script>
+  <script defer src="catalog.js?v=arrival-filters-2"></script>
   <script defer src="script.js?v=brand-loader-size-2"></script>
 </head>
 <body class="inner-page">
@@ -38,12 +38,6 @@
         <p class="eyebrow">New arrivals</p>
         <h1>Fresh pieces for every unforgettable plan.</h1>
         <p>Explore elevated co-ords, dresses, soft tailoring, and evening-ready silhouettes priced between Rs. 1,500 and Rs. 3,500.</p>
-        <div class="tab-strip">
-          <button class="active" type="button" data-arrival-filter="all" aria-pressed="true">All</button>
-          <button type="button" data-arrival-filter="casual" aria-pressed="false">Casual</button>
-          <button type="button" data-arrival-filter="workwear" aria-pressed="false">Workwear</button>
-          <button type="button" data-arrival-filter="evening" aria-pressed="false">Evening</button>
-        </div>
       </div>
       <div class="page-hero__image" data-reveal>
         <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1300&q=85" alt="Malteaser new arrivals editorial">
@@ -51,6 +45,15 @@
     </section>
 
     <section class="page-band">
+      <div class="arrival-filter-bar" aria-label="Filter New Arrivals">
+        <span>New Arrivals</span>
+        <div class="tab-strip">
+          <button class="active" type="button" data-arrival-filter="all" aria-pressed="true">All</button>
+          <button type="button" data-arrival-filter="casual" aria-pressed="false">Casual</button>
+          <button type="button" data-arrival-filter="workwear" aria-pressed="false">Workwear</button>
+          <button type="button" data-arrival-filter="evening" aria-pressed="false">Evening</button>
+        </div>
+      </div>
       <p class="catalog-status" data-catalog-status hidden></p>
       <div class="product-grid" data-catalog-section="new-arrivals"></div>
       <div class="empty-state arrival-empty" data-arrival-empty hidden>

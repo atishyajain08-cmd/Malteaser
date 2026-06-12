@@ -1754,6 +1754,31 @@ blockquote cite {
   margin-top: 18px;
 }
 
+.arrival-filter-bar {
+  position: sticky;
+  top: 94px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: -18px 0 30px;
+  padding: 14px 0;
+  background: rgba(248, 244, 238, 0.94);
+  backdrop-filter: blur(16px);
+}
+
+.arrival-filter-bar > span {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.arrival-filter-bar .tab-strip {
+  margin: 0;
+}
+
 .login-hero {
   align-items: center;
 }
@@ -2281,6 +2306,16 @@ blockquote cite {
 
   .page-grid {
     grid-template-columns: 1fr;
+  }
+
+  .arrival-filter-bar {
+    top: 82px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .arrival-filter-bar .tab-strip {
+    width: 100%;
   }
 
   .size-chart-panel h1 {

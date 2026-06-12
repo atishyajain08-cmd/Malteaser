@@ -174,6 +174,7 @@
       records = await uploadFiles(files, values);
       const { error } = await client.from("catalog_items").insert(records);
       if (error) throw error;
+      localStorage.setItem("malteaser_catalog_updated_at", String(Date.now()));
       addForm.reset();
       updateArrivalCategoryField();
       message(addMessage, `${records.length} photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
@@ -199,6 +200,7 @@
     if (button.dataset.storagePath) {
       await client.storage.from("catalog").remove([button.dataset.storagePath]);
     }
+    localStorage.setItem("malteaser_catalog_updated_at", String(Date.now()));
     message(removeMessage, "Collection removed.", "success");
     loadAdminItems();
   });

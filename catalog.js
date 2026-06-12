@@ -22,8 +22,11 @@
   const localKey = "malteaser_catalog_items";
   const cartKey = "malteaser_cart";
   const wishlistKey = "malteaser_wishlist";
+  const catalogUpdatedKey = "malteaser_catalog_updated_at";
+  const arrivalFilterKey = "malteaser_arrival_filter";
   let catalogItems = [];
-  let activeArrivalFilter = "all";
+  let activeArrivalFilter = sessionStorage.getItem(arrivalFilterKey) || "all";
+  let catalogRefreshPromise = null;
 
   function formatPrice(value) {
     const price = Number(value || 0);
@@ -149,7 +152,7 @@
   }
 
   function arrivalCategory(item) {
-    const value = String(item.label || "").toLowerCase();
+    const value = String(item.label || "").trim().toLowerCase().replace(/[\s_-]+/g, "");
     if (value.includes("work")) return "workwear";
     if (value.includes("even")) return "evening";
     return "casual";
@@ -158,6 +161,11 @@
   function renderArrivalProducts() {
     const container = document.querySelector('[data-catalog-section="new-arrivals"]');
     if (!container) return;
+    document.querySelectorAll("[data-arrival-filter]").forEach((button) => {
+      const isActive = button.dataset.arrivalFilter === activeArrivalFilter;
+      button.classList.toggle("active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
     const arrivals = catalogItems.filter((item) => item.section === "new-arrivals");
     const filtered = activeArrivalFilter === "all"
       ? arrivals
@@ -248,6 +256,7 @@
 
     if (arrivalFilterButton) {
       activeArrivalFilter = arrivalFilterButton.dataset.arrivalFilter;
+      sessionStorage.setItem(arrivalFilterKey, activeArrivalFilter);
       document.querySelectorAll("[data-arrival-filter]").forEach((button) => {
         const isActive = button === arrivalFilterButton;
         button.classList.toggle("active", isActive);
@@ -335,6 +344,16 @@
   }
 
   async function renderCatalog() {
+    if (catalogRefreshPromise) return catalogRefreshPromise;
+    catalogRefreshPromise = refreshCatalog();
+    try {
+      return await catalogRefreshPromise;
+    } finally {
+      catalogRefreshPromise = null;
+    }
+  }
+
+  async function refreshCatalog() {
     const status = document.querySelector("[data-catalog-status]");
     try {
       const items = await loadCatalog();
@@ -385,6 +404,7 @@
   window.addEventListener("pageshow", () => {
     updateHeaderCounts();
     renderCart();
+    renderCatalog();
   });
 
   window.addEventListener("storage", (event) => {
@@ -392,5 +412,10 @@
       updateHeaderCounts();
       renderCart();
     }
+    if (event.key === catalogUpdatedKey) renderCatalog();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") renderCatalog();
   });
 })();
