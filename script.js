@@ -214,7 +214,23 @@ document.querySelectorAll(".sizes button, .swatch").forEach((button) => {
       if (item.matches(".sizes button")) item.setAttribute("aria-pressed", "false");
     });
     button.classList.add("active");
-    if (button.matches(".sizes button")) button.setAttribute("aria-pressed", "true");
+    if (button.matches(".sizes button")) {
+      button.setAttribute("aria-pressed", "true");
+      const quantityOutput = button.closest("[data-product-detail]")?.querySelector("[data-quantity-value]");
+      if (quantityOutput) {
+        const max = Number(button.dataset.stock || 99);
+        quantityOutput.dataset.max = max;
+        if (Number(quantityOutput.value || quantityOutput.textContent) > max) {
+          quantityOutput.value = max;
+          quantityOutput.textContent = max;
+        }
+        const value = Number(quantityOutput.value || quantityOutput.textContent || 1);
+        const decrease = quantityOutput.closest(".quantity-stepper")?.querySelector('[data-quantity-step="-1"]');
+        const increase = quantityOutput.closest(".quantity-stepper")?.querySelector('[data-quantity-step="1"]');
+        if (decrease) decrease.disabled = value <= 1;
+        if (increase) increase.disabled = value >= max;
+      }
+    }
   });
 });
 

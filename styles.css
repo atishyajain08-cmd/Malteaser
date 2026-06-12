@@ -1327,6 +1327,68 @@ h3 {
   text-decoration: line-through;
 }
 
+.quantity-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 14px 0 22px;
+  color: currentColor;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.quantity-stepper {
+  display: inline-grid;
+  grid-template-columns: 38px 42px 38px;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid currentColor;
+  background: transparent;
+}
+
+.quantity-stepper button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.quantity-stepper button:hover {
+  background: var(--gold);
+  color: var(--charcoal);
+}
+
+.quantity-stepper button:disabled {
+  cursor: not-allowed;
+  opacity: 0.32;
+}
+
+.quantity-stepper button:disabled:hover {
+  background: transparent;
+  color: inherit;
+}
+
+.quantity-stepper button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.quantity-stepper output {
+  display: grid;
+  height: 38px;
+  place-items: center;
+  border-inline: 1px solid currentColor;
+}
+
+.cart-quantity {
+  color: var(--charcoal);
+}
+
 .size-picker {
   position: relative;
   width: min(460px, calc(100vw - 28px));
@@ -1368,6 +1430,16 @@ h3 {
   border: 1px solid rgba(34, 34, 34, 0.18);
   border-radius: 50%;
   background: transparent;
+}
+
+.size-picker__add {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.size-picker__add:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .size-chart-panel {
@@ -1883,13 +1955,27 @@ blockquote cite {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin: 0;
-  border: 1px solid rgba(34, 34, 34, 0.12);
-  padding: 18px;
+  border: 2px solid var(--gold);
+  padding: 22px;
+  background: rgba(201, 168, 106, 0.08);
 }
 
 .admin-stock legend {
   padding: 0 8px;
   font-weight: 800;
+}
+
+.admin-stock__note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+[data-arrival-category-field] {
+  padding: 16px;
+  border-left: 3px solid var(--gold);
+  background: rgba(201, 168, 106, 0.08);
 }
 
 .admin-form label {

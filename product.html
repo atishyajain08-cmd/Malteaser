@@ -9,12 +9,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=size-stock-1">
+  <link rel="stylesheet" href="styles.css?v=quantity-stock-2">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=size-stock-1"></script>
-  <script defer src="script.js?v=brand-loader-size-2"></script>
+  <script defer src="catalog.js?v=quantity-stock-2"></script>
+  <script defer src="script.js?v=quantity-stock-2"></script>
 </head>
 <body class="inner-page">
   <header class="site-header is-scrolled">
@@ -37,6 +37,14 @@
             <button type="button" data-size="M" aria-pressed="false">M</button>
             <button type="button" data-size="L" aria-pressed="false">L</button>
             <button type="button" data-size="XL" aria-pressed="false">XL</button>
+          </div>
+          <div class="quantity-picker" data-product-quantity>
+            <span>Quantity</span>
+            <div class="quantity-stepper" aria-label="Select quantity">
+              <button type="button" data-quantity-step="-1" aria-label="Decrease quantity" disabled><i data-lucide="minus"></i></button>
+              <output data-quantity-value>1</output>
+              <button type="button" data-quantity-step="1" aria-label="Increase quantity"><i data-lucide="plus"></i></button>
+            </div>
           </div>
         </div>
         <details open><summary>Fabric and Material</summary><p>Premium crepe blend, smooth satin lining, breathable structure, soft-touch finish.</p></details>

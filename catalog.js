@@ -96,20 +96,20 @@
     });
   }
 
-  function addToCart(item) {
+  function addToCart(item, quantity = 1) {
     const cart = readStored(cartKey);
     const normalized = normalizedItem(item);
     const existing = cart.find((entry) =>
       String(entry.id) === normalized.id && String(entry.size || "") === normalized.size
     );
     const available = normalized.inventory?.[normalized.size];
-    const nextQuantity = Number(existing?.quantity || 0) + 1;
+    const nextQuantity = Number(existing?.quantity || 0) + Number(quantity || 1);
     if (Number.isFinite(available) && nextQuantity > available) {
       showStockNotice(normalized, available);
       return false;
     }
     if (existing) existing.quantity = nextQuantity;
-    else cart.push({ ...normalized, quantity: 1 });
+    else cart.push({ ...normalized, quantity: nextQuantity });
     writeStored(cartKey, cart);
     showCartConfirmation(normalized);
     return true;
@@ -205,6 +205,7 @@
     root.querySelectorAll("[data-size]").forEach((button) => {
       const stock = inventory?.[button.dataset.size];
       const unavailable = inventory && stock <= 0;
+      button.dataset.stock = Number.isFinite(stock) ? stock : "";
       button.disabled = Boolean(unavailable);
       button.classList.toggle("is-unavailable", Boolean(unavailable));
       button.setAttribute("aria-label", unavailable ? `${button.dataset.size} sold out` : `${button.dataset.size}${inventory ? `, ${stock} pieces available` : ""}`);
@@ -223,16 +224,25 @@
     const totalRoot = document.querySelector("[data-cart-total]");
     if (!root) return;
     const cart = readStored(cartKey);
-    root.innerHTML = cart.map((item) => `
+    root.innerHTML = cart.map((item) => {
+      const quantity = Number(item.quantity || 1);
+      const available = item.inventory?.[item.size];
+      return `
       <article class="cart-line" data-cart-row="${escapeHtml(item.id)}">
         <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}">
         <div class="cart-line__details">
           <h3>${escapeHtml(item.title)}</h3>
-          <p>Size: ${escapeHtml(item.size || "M")} &nbsp; Quantity: ${Number(item.quantity || 1)}</p>
+          <p>Size: ${escapeHtml(item.size || "M")}</p>
+          <div class="quantity-stepper cart-quantity" aria-label="Quantity for ${escapeHtml(item.title)}">
+            <button type="button" data-cart-quantity="-1" data-cart-key="${escapeHtml(`${item.id}::${item.size || ""}`)}" aria-label="Decrease ${escapeHtml(item.title)} quantity" ${quantity <= 1 ? "disabled" : ""}><i data-lucide="minus"></i></button>
+            <output>${quantity}</output>
+            <button type="button" data-cart-quantity="1" data-cart-key="${escapeHtml(`${item.id}::${item.size || ""}`)}" aria-label="Increase ${escapeHtml(item.title)} quantity" ${Number.isFinite(available) && quantity >= available ? "disabled" : ""}><i data-lucide="plus"></i></button>
+          </div>
           <button class="cart-line__delete" type="button" data-remove-cart="${escapeHtml(`${item.id}::${item.size || ""}`)}" aria-label="Delete ${escapeHtml(item.title)} size ${escapeHtml(item.size || "M")} from bag"><i data-lucide="trash-2"></i> Delete</button>
         </div>
-        <strong>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</strong>
-      </article>`).join("") || '<div class="empty-state"><h2>Your cart is empty.</h2><a class="button button--dark" href="shop.html">Explore Products</a></div>';
+        <strong>${formatPrice(Number(item.price) * quantity)}</strong>
+      </article>`;
+    }).join("") || '<div class="empty-state"><h2>Your cart is empty.</h2><a class="button button--dark" href="shop.html">Explore Products</a></div>';
     const total = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
     if (totalRoot) totalRoot.textContent = formatPrice(total);
     window.lucide?.createIcons();
@@ -299,11 +309,53 @@
     notice.hideTimer = setTimeout(() => notice.classList.remove("is-visible"), 3500);
   }
 
+  function syncQuantityStepper(output) {
+    const stepper = output?.closest(".quantity-stepper");
+    if (!stepper) return;
+    const value = Number(output.value || output.textContent || 1);
+    const max = Number(output.dataset.max || 99);
+    const decrease = stepper.querySelector('[data-quantity-step="-1"]');
+    const increase = stepper.querySelector('[data-quantity-step="1"]');
+    if (decrease) decrease.disabled = value <= 1;
+    if (increase) increase.disabled = value >= max;
+  }
+
   document.addEventListener("click", (event) => {
     const cartButton = event.target.closest("[data-cart-item]");
     const wishlistButton = event.target.closest("[data-wishlist-item]");
     const removeCartButton = event.target.closest("[data-remove-cart]");
     const arrivalFilterButton = event.target.closest("[data-arrival-filter]");
+    const quantityStepButton = event.target.closest("[data-quantity-step]");
+    const cartQuantityButton = event.target.closest("[data-cart-quantity]");
+
+    if (quantityStepButton) {
+      const picker = quantityStepButton.closest("[data-product-quantity], [data-size-picker]");
+      const output = picker?.querySelector("[data-quantity-value]");
+      if (output) {
+        const max = Number(output.dataset.max || 99);
+        const next = Math.min(max, Math.max(1, Number(output.value || output.textContent || 1) + Number(quantityStepButton.dataset.quantityStep)));
+        output.value = next;
+        output.textContent = next;
+        syncQuantityStepper(output);
+      }
+    }
+
+    if (cartQuantityButton) {
+      const [itemId, itemSize = ""] = cartQuantityButton.dataset.cartKey.split("::");
+      const cart = readStored(cartKey);
+      const item = cart.find((entry) => String(entry.id) === itemId && String(entry.size || "") === itemSize);
+      if (item) {
+        const next = Number(item.quantity || 1) + Number(cartQuantityButton.dataset.cartQuantity);
+        const available = item.inventory?.[item.size];
+        if (next >= 1 && (!Number.isFinite(available) || next <= available)) {
+          item.quantity = next;
+          writeStored(cartKey, cart);
+          renderCart();
+        } else if (Number.isFinite(available) && next > available) {
+          showStockNotice(item, available);
+        }
+      }
+    }
 
     if (arrivalFilterButton) {
       activeArrivalFilter = arrivalFilterButton.dataset.arrivalFilter;
@@ -320,9 +372,11 @@
       event.preventDefault();
       try {
         const item = JSON.parse(decodeURIComponent(cartButton.dataset.cartItem));
-        const selectedSize = cartButton.closest("[data-product-detail]")?.querySelector(".sizes button.active")?.dataset.size;
+        const productRoot = cartButton.closest("[data-product-detail]");
+        const selectedSize = productRoot?.querySelector(".sizes button.active")?.dataset.size;
+        const quantity = Number(productRoot?.querySelector("[data-quantity-value]")?.value || 1);
         if (selectedSize) {
-          if (addToCart({ ...item, size: selectedSize })) {
+          if (addToCart({ ...item, size: selectedSize }, quantity)) {
             flashButton(cartButton, "Added");
             renderCart();
           }
@@ -375,12 +429,35 @@
           <button type="button" data-picker-size="L">L</button>
           <button type="button" data-picker-size="XL">XL</button>
         </div>
+        <div class="quantity-picker">
+          <span>Quantity</span>
+          <div class="quantity-stepper" aria-label="Select quantity">
+            <button type="button" data-quantity-step="-1" aria-label="Decrease quantity"><i data-lucide="minus"></i></button>
+            <output data-quantity-value>1</output>
+            <button type="button" data-quantity-step="1" aria-label="Increase quantity"><i data-lucide="plus"></i></button>
+          </div>
+        </div>
+        <button class="button button--dark size-picker__add" type="button" data-picker-add disabled><i data-lucide="shopping-bag"></i> Add to Cart</button>
         <a class="text-button" href="size-guide.html">View Size Chart</a>`;
       document.body.appendChild(picker);
       picker.addEventListener("click", (pickerEvent) => {
         const sizeButton = pickerEvent.target.closest("[data-picker-size]");
         if (sizeButton) {
-          if (addToCart({ ...picker.pendingItem, size: sizeButton.dataset.pickerSize })) {
+          picker.querySelectorAll("[data-picker-size]").forEach((button) => button.classList.toggle("active", button === sizeButton));
+          const quantityOutput = picker.querySelector("[data-quantity-value]");
+          const max = Number(sizeButton.dataset.stock || 99);
+          quantityOutput.dataset.max = max;
+          if (Number(quantityOutput.value || quantityOutput.textContent) > max) {
+            quantityOutput.value = max;
+            quantityOutput.textContent = max;
+          }
+          syncQuantityStepper(quantityOutput);
+          picker.querySelector("[data-picker-add]").disabled = false;
+        }
+        if (pickerEvent.target.closest("[data-picker-add]")) {
+          const selectedSize = picker.querySelector("[data-picker-size].active")?.dataset.pickerSize;
+          const quantity = Number(picker.querySelector("[data-quantity-value]")?.value || 1);
+          if (selectedSize && addToCart({ ...picker.pendingItem, size: selectedSize }, quantity)) {
             flashButton(picker.sourceButton, "Added");
             renderCart();
             picker.close();
@@ -392,10 +469,18 @@
     picker.pendingItem = item;
     picker.sourceButton = sourceButton;
     picker.querySelector("[data-size-picker-product]").textContent = item.title;
+    const quantityOutput = picker.querySelector("[data-quantity-value]");
+    quantityOutput.value = 1;
+    quantityOutput.textContent = "1";
+    quantityOutput.dataset.max = 99;
+    syncQuantityStepper(quantityOutput);
+    picker.querySelectorAll("[data-picker-size]").forEach((button) => button.classList.remove("active"));
+    picker.querySelector("[data-picker-add]").disabled = true;
     const inventory = item.inventory || inventoryFromDescription(item.description);
     picker.querySelectorAll("[data-picker-size]").forEach((button) => {
       const stock = inventory?.[button.dataset.pickerSize];
       const unavailable = inventory && stock <= 0;
+      button.dataset.stock = Number.isFinite(stock) ? stock : "";
       button.disabled = Boolean(unavailable);
       button.classList.toggle("is-unavailable", Boolean(unavailable));
       button.title = unavailable ? "Sold out" : inventory ? `${stock} pieces available` : "";

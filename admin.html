@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=size-stock-1">
+  <link rel="stylesheet" href="styles.css?v=quantity-stock-2">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=size-stock-1"></script>
-  <script defer src="admin.js?v=size-stock-1"></script>
+  <script defer src="catalog.js?v=quantity-stock-2"></script>
+  <script defer src="admin.js?v=quantity-stock-2"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -66,16 +66,17 @@
             </select>
           </label>
           <label data-arrival-category-field>
-            New Arrival category
+            New Arrival subsection
             <select name="arrival_category" required>
-              <option value="">Choose a category</option>
+              <option value="">Choose Casual, Workwear, or Evening</option>
               <option value="Casual">Casual</option>
               <option value="Workwear">Workwear</option>
               <option value="Evening">Evening</option>
             </select>
           </label>
           <fieldset class="admin-stock">
-            <legend>How many pieces are being added?</legend>
+            <legend>Product inventory by size</legend>
+            <p class="admin-stock__note">Enter the number of pieces available in every size.</p>
             <label>S pieces<input type="number" name="stock_s" min="0" step="1" value="3" required></label>
             <label>M pieces<input type="number" name="stock_m" min="0" step="1" value="3" required></label>
             <label>L pieces<input type="number" name="stock_l" min="0" step="1" value="3" required></label>

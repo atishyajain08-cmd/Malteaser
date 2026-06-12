@@ -10,9 +10,44 @@
   const addMessage = document.querySelector("[data-add-message]");
   const removeMessage = document.querySelector("[data-remove-message]");
   const itemsRoot = document.querySelector("[data-admin-items]");
-  const sectionSelect = document.querySelector("[data-section-select]");
-  const arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
-  const arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
+  let sectionSelect = document.querySelector("[data-section-select], [name='section']");
+  let arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
+  let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
+
+  function ensureUploadFields() {
+    if (!addForm || !sectionSelect) return;
+    sectionSelect.dataset.sectionSelect = "";
+
+    if (!arrivalCategoryField) {
+      arrivalCategoryField = document.createElement("label");
+      arrivalCategoryField.dataset.arrivalCategoryField = "";
+      arrivalCategoryField.innerHTML = `
+        New Arrival subsection
+        <select name="arrival_category" required>
+          <option value="">Choose Casual, Workwear, or Evening</option>
+          <option value="Casual">Casual</option>
+          <option value="Workwear">Workwear</option>
+          <option value="Evening">Evening</option>
+        </select>`;
+      sectionSelect.closest("label").insertAdjacentElement("afterend", arrivalCategoryField);
+      arrivalCategorySelect = arrivalCategoryField.querySelector("select");
+    }
+
+    if (!addForm.querySelector(".admin-stock")) {
+      const stock = document.createElement("fieldset");
+      stock.className = "admin-stock";
+      stock.innerHTML = `
+        <legend>Product inventory by size</legend>
+        <p class="admin-stock__note">Enter the number of pieces available in every size.</p>
+        <label>S pieces<input type="number" name="stock_s" min="0" step="1" value="3" required></label>
+        <label>M pieces<input type="number" name="stock_m" min="0" step="1" value="3" required></label>
+        <label>L pieces<input type="number" name="stock_l" min="0" step="1" value="3" required></label>
+        <label>XL pieces<input type="number" name="stock_xl" min="0" step="1" value="3" required></label>`;
+      addForm.querySelector("input[type='file']")?.closest("label").insertAdjacentElement("beforebegin", stock);
+    }
+  }
+
+  ensureUploadFields();
 
   function message(element, text, type = "") {
     if (!element) return;
@@ -228,6 +263,10 @@
   });
 
   document.addEventListener("DOMContentLoaded", async () => {
+    ensureUploadFields();
+    sectionSelect = document.querySelector("[data-section-select], [name='section']");
+    arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
+    arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
     updateArrivalCategoryField();
     if (!catalog?.isConfigured) {
       setup.hidden = false;
