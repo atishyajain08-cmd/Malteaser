@@ -8,13 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=inventory-popup-1">
-  <link rel="stylesheet" href="admin-popup.css?v=inventory-popup-1">
+  <link rel="stylesheet" href="styles.css?v=inventory-edit-1">
+  <link rel="stylesheet" href="admin-popup.css?v=inventory-edit-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=inventory-popup-1"></script>
-  <script defer src="admin.js?v=inventory-popup-1"></script>
+  <script defer src="catalog.js?v=inventory-edit-1"></script>
+  <script defer src="admin.js?v=inventory-edit-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -92,8 +92,8 @@
     <form class="inventory-dialog__form" method="dialog" data-inventory-form>
       <button class="inventory-dialog__close" type="button" data-inventory-cancel aria-label="Close inventory popup"><i data-lucide="x"></i></button>
       <p class="eyebrow">Inventory details</p>
-      <h2>Quantity by size</h2>
-      <p class="inventory-dialog__intro">Set how many pieces of this product you are uploading in every size.</p>
+      <h2 data-inventory-title>Quantity by size</h2>
+      <p class="inventory-dialog__intro" data-inventory-intro>Set how many pieces of this product you are uploading in every size.</p>
       <div class="inventory-sizes">
         <label class="inventory-size">
           <strong>S</strong>
@@ -134,7 +134,7 @@
       </div>
       <div class="inventory-dialog__actions">
         <button class="button button--light" type="button" data-inventory-cancel>Cancel</button>
-        <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Confirm &amp; Upload</button>
+        <button class="button button--dark" type="submit" data-inventory-submit><i data-lucide="upload"></i> Confirm &amp; Upload</button>
       </div>
     </form>
   </dialog>

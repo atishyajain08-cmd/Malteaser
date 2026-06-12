@@ -124,6 +124,36 @@
   width: 100%;
 }
 
+.admin-item__actions {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px !important;
+}
+
+.admin-item__edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  border: 1px solid var(--gold);
+  padding: 0 13px;
+  background: transparent;
+  color: var(--charcoal);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-item__edit:hover {
+  background: var(--gold);
+}
+
+.admin-item__edit svg {
+  width: 15px;
+  height: 15px;
+}
+
 @media (max-width: 680px) {
   .inventory-dialog__form {
     padding: 28px 18px 20px;
@@ -153,5 +183,15 @@
 
   .inventory-dialog__actions {
     grid-template-columns: 1fr;
+  }
+
+  .admin-item {
+    grid-template-columns: 72px 1fr;
+  }
+
+  .admin-item__actions {
+    grid-column: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }

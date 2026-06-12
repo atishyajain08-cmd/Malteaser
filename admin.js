@@ -13,6 +13,7 @@
   let inventoryDialog = document.querySelector("[data-inventory-dialog]");
   let inventoryForm = document.querySelector("[data-inventory-form]");
   let pendingUpload = null;
+  let pendingInventoryEdit = null;
   let sectionSelect = document.querySelector("[data-section-select], [name='section']");
   let arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
   let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
@@ -140,7 +141,7 @@
       return;
     }
     itemsRoot.innerHTML = (data || []).map((item) => {
-      const inventory = inventoryFromDescription(item.description);
+      const inventory = inventoryFromDescription(item.description) || { S: 3, M: 3, L: 3, XL: 3 };
       const stockText = inventory
         ? `S ${inventory.S} · M ${inventory.M} · L ${inventory.L} · XL ${inventory.XL}`
         : "Size stock not set";
@@ -148,7 +149,16 @@
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
         <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.section.replace("-", " "))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
-        <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
+        <div class="admin-item__actions">
+          <button class="admin-item__edit" type="button"
+            data-edit-inventory="${escapeHtml(item.id)}"
+            data-item-title="${escapeHtml(item.title)}"
+            data-description="${escapeHtml(item.description)}"
+            data-stock-s="${inventory.S}" data-stock-m="${inventory.M}" data-stock-l="${inventory.L}" data-stock-xl="${inventory.XL}">
+            <i data-lucide="package-plus"></i> Edit quantity
+          </button>
+          <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
+        </div>
       </article>`;
     }).join("") || "<p>No uploaded collections yet.</p>";
     window.lucide?.createIcons();
@@ -211,7 +221,11 @@
     const files = formData.getAll("photos").filter((file) => file.size > 0);
     const values = Object.fromEntries(formData);
     pendingUpload = { files, values };
+    pendingInventoryEdit = null;
     inventoryForm?.reset();
+    inventoryDialog.querySelector("[data-inventory-title]").textContent = "Quantity by size";
+    inventoryDialog.querySelector("[data-inventory-intro]").textContent = "Set how many pieces of this product you are uploading in every size.";
+    inventoryDialog.querySelector("[data-inventory-submit]").innerHTML = '<i data-lucide="upload"></i> Confirm & Upload';
     inventoryDialog?.showModal();
     window.lucide?.createIcons();
   });
@@ -219,6 +233,7 @@
   inventoryDialog?.addEventListener("click", (event) => {
     if (event.target === inventoryDialog || event.target.closest("[data-inventory-cancel]")) {
       pendingUpload = null;
+      pendingInventoryEdit = null;
       inventoryDialog.close();
       return;
     }
@@ -231,15 +246,33 @@
 
   inventoryForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!client || !pendingUpload) return;
+    if (!client || (!pendingUpload && !pendingInventoryEdit)) return;
     const stockValues = Object.fromEntries(new FormData(inventoryForm));
+    const confirmButton = inventoryForm.querySelector("button[type='submit']");
+    confirmButton.disabled = true;
+    inventoryDialog.close();
+
+    if (pendingInventoryEdit) {
+      const edit = pendingInventoryEdit;
+      message(removeMessage, `Saving quantity for ${edit.title}...`);
+      const description = descriptionWithInventory(edit.description, stockValues);
+      const { error } = await client.from("catalog_items").update({ description }).eq("id", edit.id);
+      confirmButton.disabled = false;
+      if (error) {
+        message(removeMessage, error.message, "error");
+        return;
+      }
+      pendingInventoryEdit = null;
+      localStorage.setItem("malteaser_catalog_updated_at", String(Date.now()));
+      message(removeMessage, "Product quantity updated.", "success");
+      loadAdminItems();
+      return;
+    }
+
     const { files, values } = pendingUpload;
     Object.assign(values, stockValues);
     const submitButton = addForm.querySelector("button[type='submit']");
-    const confirmButton = inventoryForm.querySelector("button[type='submit']");
     submitButton.disabled = true;
-    confirmButton.disabled = true;
-    inventoryDialog.close();
     message(addMessage, "Uploading photos...");
     let records = [];
     try {
@@ -263,6 +296,31 @@
   });
 
   itemsRoot?.addEventListener("click", async (event) => {
+    const editButton = event.target.closest("[data-edit-inventory]");
+    if (editButton) {
+      pendingUpload = null;
+      pendingInventoryEdit = {
+        id: editButton.dataset.editInventory,
+        title: editButton.dataset.itemTitle,
+        description: editButton.dataset.description
+      };
+      inventoryDialog.querySelector("[data-inventory-title]").textContent = "Edit product quantity";
+      inventoryDialog.querySelector("[data-inventory-intro]").textContent = `Update the available pieces for ${pendingInventoryEdit.title}.`;
+      inventoryDialog.querySelector("[data-inventory-submit]").innerHTML = '<i data-lucide="save"></i> Save Quantity';
+      const stock = {
+        s: editButton.dataset.stockS,
+        m: editButton.dataset.stockM,
+        l: editButton.dataset.stockL,
+        xl: editButton.dataset.stockXl
+      };
+      Object.entries(stock).forEach(([size, quantity]) => {
+        inventoryForm.elements[`stock_${size}`].value = quantity || 0;
+      });
+      inventoryDialog.showModal();
+      window.lucide?.createIcons();
+      return;
+    }
+
     const button = event.target.closest("[data-delete-id]");
     if (!button || !client) return;
     button.disabled = true;
