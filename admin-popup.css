@@ -1,0 +1,157 @@
+.inventory-dialog {
+  width: min(560px, calc(100vw - 28px));
+  max-height: calc(100vh - 28px);
+  padding: 0;
+  border: 1px solid rgba(201, 168, 106, 0.58);
+  background: var(--ivory);
+  color: var(--charcoal);
+  box-shadow: 0 28px 90px rgba(34, 34, 34, 0.28);
+}
+
+.inventory-dialog::backdrop {
+  background: rgba(34, 34, 34, 0.64);
+  backdrop-filter: blur(7px);
+}
+
+.inventory-dialog__form {
+  position: relative;
+  padding: 34px;
+}
+
+.inventory-dialog__form h2 {
+  margin: 5px 0 8px;
+  font-family: var(--serif);
+  font-size: clamp(30px, 5vw, 44px);
+}
+
+.inventory-dialog__intro {
+  max-width: 440px;
+  margin: 0 0 25px;
+  color: rgba(34, 34, 34, 0.68);
+  line-height: 1.6;
+}
+
+.inventory-dialog__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid rgba(34, 34, 34, 0.18);
+  background: transparent;
+}
+
+.inventory-dialog__close svg,
+.inventory-stepper svg {
+  width: 16px;
+  height: 16px;
+}
+
+.inventory-sizes {
+  border-top: 1px solid rgba(34, 34, 34, 0.14);
+}
+
+.inventory-size {
+  display: grid;
+  grid-template-columns: 48px minmax(90px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(34, 34, 34, 0.14);
+}
+
+.inventory-size > strong {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--gold);
+  font-family: var(--serif);
+  font-size: 17px;
+}
+
+.inventory-size > span:nth-child(2) {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.inventory-stepper {
+  display: grid;
+  grid-template-columns: 38px 58px 38px;
+  border: 1px solid rgba(34, 34, 34, 0.36);
+}
+
+.inventory-stepper button {
+  display: grid;
+  width: 38px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+}
+
+.inventory-stepper button:hover {
+  background: var(--gold);
+}
+
+.inventory-stepper input {
+  width: 58px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-inline: 1px solid rgba(34, 34, 34, 0.36);
+  background: white;
+  text-align: center;
+  font: 700 14px var(--sans);
+  appearance: textfield;
+}
+
+.inventory-stepper input::-webkit-inner-spin-button,
+.inventory-stepper input::-webkit-outer-spin-button {
+  appearance: none;
+}
+
+.inventory-dialog__actions {
+  display: grid;
+  grid-template-columns: 1fr 1.45fr;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.inventory-dialog__actions .button {
+  width: 100%;
+}
+
+@media (max-width: 680px) {
+  .inventory-dialog__form {
+    padding: 28px 18px 20px;
+  }
+
+  .inventory-dialog__close {
+    top: 14px;
+    right: 14px;
+  }
+
+  .inventory-size {
+    grid-template-columns: 44px minmax(68px, 1fr) auto;
+    gap: 10px;
+  }
+
+  .inventory-stepper {
+    grid-template-columns: 34px 48px 34px;
+  }
+
+  .inventory-stepper button {
+    width: 34px;
+  }
+
+  .inventory-stepper input {
+    width: 48px;
+  }
+
+  .inventory-dialog__actions {
+    grid-template-columns: 1fr;
+  }
+}

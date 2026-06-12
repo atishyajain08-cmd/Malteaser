@@ -10,6 +10,9 @@
   const addMessage = document.querySelector("[data-add-message]");
   const removeMessage = document.querySelector("[data-remove-message]");
   const itemsRoot = document.querySelector("[data-admin-items]");
+  let inventoryDialog = document.querySelector("[data-inventory-dialog]");
+  let inventoryForm = document.querySelector("[data-inventory-form]");
+  let pendingUpload = null;
   let sectionSelect = document.querySelector("[data-section-select], [name='section']");
   let arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
   let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
@@ -33,18 +36,7 @@
       arrivalCategorySelect = arrivalCategoryField.querySelector("select");
     }
 
-    if (!addForm.querySelector(".admin-stock")) {
-      const stock = document.createElement("fieldset");
-      stock.className = "admin-stock";
-      stock.innerHTML = `
-        <legend>Product inventory by size</legend>
-        <p class="admin-stock__note">Enter the number of pieces available in every size.</p>
-        <label>S pieces<input type="number" name="stock_s" min="0" step="1" value="3" required></label>
-        <label>M pieces<input type="number" name="stock_m" min="0" step="1" value="3" required></label>
-        <label>L pieces<input type="number" name="stock_l" min="0" step="1" value="3" required></label>
-        <label>XL pieces<input type="number" name="stock_xl" min="0" step="1" value="3" required></label>`;
-      addForm.querySelector("input[type='file']")?.closest("label").insertAdjacentElement("beforebegin", stock);
-    }
+    addForm.querySelector(".admin-stock")?.remove();
   }
 
   ensureUploadFields();
@@ -218,8 +210,36 @@
     const formData = new FormData(addForm);
     const files = formData.getAll("photos").filter((file) => file.size > 0);
     const values = Object.fromEntries(formData);
+    pendingUpload = { files, values };
+    inventoryForm?.reset();
+    inventoryDialog?.showModal();
+    window.lucide?.createIcons();
+  });
+
+  inventoryDialog?.addEventListener("click", (event) => {
+    if (event.target === inventoryDialog || event.target.closest("[data-inventory-cancel]")) {
+      pendingUpload = null;
+      inventoryDialog.close();
+      return;
+    }
+    const stepButton = event.target.closest("[data-stock-step]");
+    if (!stepButton) return;
+    const input = stepButton.parentElement.querySelector("input[type='number']");
+    const next = Math.max(0, Number(input.value || 0) + Number(stepButton.dataset.stockStep));
+    input.value = next;
+  });
+
+  inventoryForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!client || !pendingUpload) return;
+    const stockValues = Object.fromEntries(new FormData(inventoryForm));
+    const { files, values } = pendingUpload;
+    Object.assign(values, stockValues);
     const submitButton = addForm.querySelector("button[type='submit']");
+    const confirmButton = inventoryForm.querySelector("button[type='submit']");
     submitButton.disabled = true;
+    confirmButton.disabled = true;
+    inventoryDialog.close();
     message(addMessage, "Uploading photos...");
     let records = [];
     try {
@@ -228,6 +248,8 @@
       if (error) throw error;
       localStorage.setItem("malteaser_catalog_updated_at", String(Date.now()));
       addForm.reset();
+      inventoryForm.reset();
+      pendingUpload = null;
       updateArrivalCategoryField();
       message(addMessage, `${records.length} photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
     } catch (error) {
@@ -236,6 +258,7 @@
       message(addMessage, error.message, "error");
     } finally {
       submitButton.disabled = false;
+      confirmButton.disabled = false;
     }
   });
 
@@ -267,6 +290,8 @@
     sectionSelect = document.querySelector("[data-section-select], [name='section']");
     arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
     arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
+    inventoryDialog = document.querySelector("[data-inventory-dialog]");
+    inventoryForm = document.querySelector("[data-inventory-form]");
     updateArrivalCategoryField();
     if (!catalog?.isConfigured) {
       setup.hidden = false;

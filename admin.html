@@ -8,12 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=quantity-stock-2">
+  <link rel="stylesheet" href="styles.css?v=inventory-popup-1">
+  <link rel="stylesheet" href="admin-popup.css?v=inventory-popup-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=quantity-stock-2"></script>
-  <script defer src="admin.js?v=quantity-stock-2"></script>
+  <script defer src="catalog.js?v=inventory-popup-1"></script>
+  <script defer src="admin.js?v=inventory-popup-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -74,14 +75,6 @@
               <option value="Evening">Evening</option>
             </select>
           </label>
-          <fieldset class="admin-stock">
-            <legend>Product inventory by size</legend>
-            <p class="admin-stock__note">Enter the number of pieces available in every size.</p>
-            <label>S pieces<input type="number" name="stock_s" min="0" step="1" value="3" required></label>
-            <label>M pieces<input type="number" name="stock_m" min="0" step="1" value="3" required></label>
-            <label>L pieces<input type="number" name="stock_l" min="0" step="1" value="3" required></label>
-            <label>XL pieces<input type="number" name="stock_xl" min="0" step="1" value="3" required></label>
-          </fieldset>
           <label>Photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required></label>
           <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Upload collection</button>
           <p class="admin-message" data-add-message aria-live="polite"></p>
@@ -94,5 +87,56 @@
       </section>
     </section>
   </main>
+
+  <dialog class="inventory-dialog" data-inventory-dialog>
+    <form class="inventory-dialog__form" method="dialog" data-inventory-form>
+      <button class="inventory-dialog__close" type="button" data-inventory-cancel aria-label="Close inventory popup"><i data-lucide="x"></i></button>
+      <p class="eyebrow">Inventory details</p>
+      <h2>Quantity by size</h2>
+      <p class="inventory-dialog__intro">Set how many pieces of this product you are uploading in every size.</p>
+      <div class="inventory-sizes">
+        <label class="inventory-size">
+          <strong>S</strong>
+          <span>Small</span>
+          <span class="inventory-stepper">
+            <button type="button" data-stock-step="-1" aria-label="Decrease small quantity"><i data-lucide="minus"></i></button>
+            <input type="number" name="stock_s" min="0" step="1" value="3" inputmode="numeric" aria-label="Small quantity" required>
+            <button type="button" data-stock-step="1" aria-label="Increase small quantity"><i data-lucide="plus"></i></button>
+          </span>
+        </label>
+        <label class="inventory-size">
+          <strong>M</strong>
+          <span>Medium</span>
+          <span class="inventory-stepper">
+            <button type="button" data-stock-step="-1" aria-label="Decrease medium quantity"><i data-lucide="minus"></i></button>
+            <input type="number" name="stock_m" min="0" step="1" value="3" inputmode="numeric" aria-label="Medium quantity" required>
+            <button type="button" data-stock-step="1" aria-label="Increase medium quantity"><i data-lucide="plus"></i></button>
+          </span>
+        </label>
+        <label class="inventory-size">
+          <strong>L</strong>
+          <span>Large</span>
+          <span class="inventory-stepper">
+            <button type="button" data-stock-step="-1" aria-label="Decrease large quantity"><i data-lucide="minus"></i></button>
+            <input type="number" name="stock_l" min="0" step="1" value="3" inputmode="numeric" aria-label="Large quantity" required>
+            <button type="button" data-stock-step="1" aria-label="Increase large quantity"><i data-lucide="plus"></i></button>
+          </span>
+        </label>
+        <label class="inventory-size">
+          <strong>XL</strong>
+          <span>Extra Large</span>
+          <span class="inventory-stepper">
+            <button type="button" data-stock-step="-1" aria-label="Decrease extra large quantity"><i data-lucide="minus"></i></button>
+            <input type="number" name="stock_xl" min="0" step="1" value="3" inputmode="numeric" aria-label="Extra large quantity" required>
+            <button type="button" data-stock-step="1" aria-label="Increase extra large quantity"><i data-lucide="plus"></i></button>
+          </span>
+        </label>
+      </div>
+      <div class="inventory-dialog__actions">
+        <button class="button button--light" type="button" data-inventory-cancel>Cancel</button>
+        <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Confirm &amp; Upload</button>
+      </div>
+    </form>
+  </dialog>
 </body>
 </html>
