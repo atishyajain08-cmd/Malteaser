@@ -395,30 +395,6 @@ button {
   animation: shorelinePulse 6s ease-in-out infinite;
 }
 
-.hero__title-depth {
-  position: absolute;
-  inset: 19% 3% auto;
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  color: rgba(248, 244, 238, 0.38);
-  font-family: var(--serif);
-  font-size: clamp(72px, 14vw, 220px);
-  line-height: 0.78;
-  pointer-events: none;
-  transform: translate3d(
-    calc(var(--hero-mouse-x) * 7px),
-    calc(var(--hero-mouse-y) * 5px),
-    10px
-  );
-  will-change: transform;
-}
-
-.hero__title-depth span:last-child {
-  align-self: flex-end;
-  margin-top: 0.7em;
-}
-
 .hero-water {
   position: absolute;
   left: 0;
@@ -542,6 +518,11 @@ button {
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 34px 46px rgba(34, 34, 34, 0.34));
+}
+
+.outfit-look--full-body img {
+  object-fit: contain;
+  object-position: center center;
 }
 
 .outfit-caption {
@@ -2522,11 +2503,6 @@ blockquote cite {
     opacity: 0.92;
   }
 
-  .hero__title-depth {
-    inset-inline: 1%;
-    font-size: clamp(62px, 14vw, 126px);
-  }
-
   .product-grid,
   .review-grid,
   .gateway-grid {
@@ -2615,18 +2591,6 @@ blockquote cite {
       calc(var(--hero-mouse-y) * 3px),
       70px
     );
-  }
-
-  .hero__title-depth {
-    top: 16%;
-    display: grid;
-    justify-content: stretch;
-    font-size: clamp(58px, 18vw, 92px);
-    text-align: center;
-  }
-
-  .hero__title-depth span:last-child {
-    margin-top: 1.8em;
   }
 
   .hero__scroll-cue {
