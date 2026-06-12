@@ -47,6 +47,7 @@ const ribbons = document.querySelectorAll(".fabric-ribbon");
 const beachHero = document.querySelector(".beach-hero");
 const outfitLooks = document.querySelectorAll(".outfit-look");
 const outfitCaption = document.querySelector(".outfit-caption");
+const heroSticky = beachHero?.querySelector(".hero__sticky");
 let activeOutfitIndex = 0;
 
 const revealObserver = new IntersectionObserver(
@@ -79,6 +80,10 @@ function updateParallax() {
     const speed = Number(layer.dataset.speed || 0.1);
     const rect = layer.getBoundingClientRect();
     const offset = rect.top * speed;
+    if (layer.closest(".beach-hero")) {
+      heroSticky?.style.setProperty("--hero-scroll-depth", `${offset}px`);
+      return;
+    }
     layer.style.transform = `translate3d(0, ${offset}px, 0)`;
   });
 }
@@ -123,22 +128,53 @@ function updateHeroOutfit() {
   const heroTop = beachHero.offsetTop;
   const heroScrollable = Math.max(beachHero.offsetHeight - window.innerHeight, 1);
   const progress = clamp((window.scrollY - heroTop) / heroScrollable, 0, 1);
-  const nextIndex = clamp(Math.floor(progress * outfitLooks.length), 0, outfitLooks.length - 1);
+  const chapter = progress * outfitLooks.length;
+  const chapterIndex = clamp(Math.floor(chapter), 0, outfitLooks.length - 1);
+  const chapterProgress = chapter - chapterIndex;
+  const transitionStart = 0.64;
+  const blend = chapterIndex === outfitLooks.length - 1
+    ? 0
+    : clamp((chapterProgress - transitionStart) / (1 - transitionStart), 0, 1);
+  const smoothBlend = blend * blend * (3 - 2 * blend);
 
-  if (nextIndex === activeOutfitIndex) return;
-  activeOutfitIndex = nextIndex;
-  outfitLooks.forEach((look, index) => look.classList.toggle("is-active", index === activeOutfitIndex));
+  outfitLooks.forEach((look, index) => {
+    let opacity = 0;
+    if (index === chapterIndex) opacity = 1 - smoothBlend;
+    if (index === chapterIndex + 1) opacity = smoothBlend;
+    look.style.opacity = opacity.toFixed(3);
+    look.style.transform = `translate3d(${(index - chapterIndex) * 14 * (1 - opacity)}px, ${8 * (1 - opacity)}px, 0) scale(${0.988 + opacity * 0.012})`;
+    look.classList.toggle("is-active", opacity > 0.5);
+  });
 
-  if (outfitCaption) {
-    outfitCaption.style.opacity = "0";
-    outfitCaption.style.transform = "translateX(-50%) translateY(8px)";
-    setTimeout(() => {
-      outfitCaption.textContent = outfitLooks[activeOutfitIndex]?.dataset.outfit || "";
-      outfitCaption.style.opacity = "1";
-      outfitCaption.style.transform = "translateX(-50%) translateY(0)";
-    }, 180);
+  const nextIndex = blend >= 0.5 ? Math.min(chapterIndex + 1, outfitLooks.length - 1) : chapterIndex;
+  if (nextIndex !== activeOutfitIndex) {
+    activeOutfitIndex = nextIndex;
+    if (outfitCaption) {
+      outfitCaption.style.opacity = "0";
+      outfitCaption.style.transform = "translateX(-50%) translateY(8px)";
+      window.setTimeout(() => {
+        outfitCaption.textContent = outfitLooks[activeOutfitIndex]?.dataset.outfit || "";
+        outfitCaption.style.opacity = "1";
+        outfitCaption.style.transform = "translateX(-50%) translateY(0)";
+      }, 260);
+    }
   }
 }
+
+function updateHeroPointer(event) {
+  if (!heroSticky || window.matchMedia("(pointer: coarse)").matches) return;
+  const rect = heroSticky.getBoundingClientRect();
+  const x = clamp((event.clientX - rect.left) / rect.width, 0, 1) * 2 - 1;
+  const y = clamp((event.clientY - rect.top) / rect.height, 0, 1) * 2 - 1;
+  heroSticky.style.setProperty("--hero-mouse-x", x.toFixed(3));
+  heroSticky.style.setProperty("--hero-mouse-y", y.toFixed(3));
+}
+
+heroSticky?.addEventListener("pointermove", updateHeroPointer, { passive: true });
+heroSticky?.addEventListener("pointerleave", () => {
+  heroSticky.style.setProperty("--hero-mouse-x", "0");
+  heroSticky.style.setProperty("--hero-mouse-y", "0");
+});
 
 function onScroll() {
   updateHeader();
