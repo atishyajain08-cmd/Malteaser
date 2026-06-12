@@ -254,7 +254,8 @@ button {
   transition: transform 0.3s ease;
 }
 
-.main-nav a:hover::after {
+.main-nav a:hover::after,
+.main-nav a[aria-current="page"]::after {
   transform: scaleX(1);
   transform-origin: left;
 }
@@ -1792,6 +1793,13 @@ blockquote cite {
 .page-hero__copy {
   display: grid;
   gap: 18px;
+}
+
+.arrival-hero-title {
+  font-size: clamp(44px, 5.6vw, 84px);
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .page-hero > *,
