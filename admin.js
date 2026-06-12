@@ -10,6 +10,9 @@
   const addMessage = document.querySelector("[data-add-message]");
   const removeMessage = document.querySelector("[data-remove-message]");
   const itemsRoot = document.querySelector("[data-admin-items]");
+  const sectionSelect = document.querySelector("[data-section-select]");
+  const arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
+  const arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
 
   function message(element, text, type = "") {
     if (!element) return;
@@ -72,7 +75,9 @@
           description: values.description,
           price: Number(values.price || 0),
           section: values.section,
-          label: values.section === "new-arrivals" ? "New Arrival" : values.section === "product" ? "Product" : "Collection",
+          label: values.section === "new-arrivals"
+            ? values.arrival_category
+            : values.section === "product" ? "Product" : "Collection",
           image_url: publicData.publicUrl,
           storage_path: path,
           is_active: true,
@@ -99,7 +104,7 @@
     itemsRoot.innerHTML = (data || []).map((item) => `
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
-        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.section.replace("-", " "))}</span></div>
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.section.replace("-", " "))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span></div>
         <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
       </article>`).join("") || "<p>No uploaded collections yet.</p>";
     window.lucide?.createIcons();
@@ -114,6 +119,18 @@
       if (button.dataset.adminMode === "remove") loadAdminItems();
     });
   });
+
+  function updateArrivalCategoryField() {
+    const isNewArrival = sectionSelect?.value === "new-arrivals";
+    if (arrivalCategoryField) arrivalCategoryField.hidden = !isNewArrival;
+    if (arrivalCategorySelect) {
+      arrivalCategorySelect.required = isNewArrival;
+      arrivalCategorySelect.disabled = !isNewArrival;
+      if (!isNewArrival) arrivalCategorySelect.value = "";
+    }
+  }
+
+  sectionSelect?.addEventListener("change", updateArrivalCategoryField);
 
   loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -158,6 +175,7 @@
       const { error } = await client.from("catalog_items").insert(records);
       if (error) throw error;
       addForm.reset();
+      updateArrivalCategoryField();
       message(addMessage, `${records.length} photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
     } catch (error) {
       const uploadedPaths = records.map((record) => record.storage_path).filter(Boolean);
@@ -191,6 +209,7 @@
   });
 
   document.addEventListener("DOMContentLoaded", async () => {
+    updateArrivalCategoryField();
     if (!catalog?.isConfigured) {
       setup.hidden = false;
       loginForm.querySelectorAll("input, button").forEach((element) => { element.disabled = true; });

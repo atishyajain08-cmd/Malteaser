@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=arrival-filters-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js"></script>
-  <script defer src="admin.js"></script>
+  <script defer src="catalog.js?v=arrival-filters-1"></script>
+  <script defer src="admin.js?v=arrival-filters-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -58,11 +58,20 @@
           <label>Price in rupees<input type="number" name="price" min="0" step="1" value="0"></label>
           <label>
             Where should these photos appear?
-            <select name="section" required>
+            <select name="section" required data-section-select>
               <option value="new-arrivals">New Arrivals</option>
               <option value="collections">Collections</option>
               <option value="lookbook">Lookbook</option>
               <option value="product">Product section</option>
+            </select>
+          </label>
+          <label data-arrival-category-field>
+            New Arrival category
+            <select name="arrival_category" required>
+              <option value="">Choose a category</option>
+              <option value="Casual">Casual</option>
+              <option value="Workwear">Workwear</option>
+              <option value="Evening">Evening</option>
             </select>
           </label>
           <label>Photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required></label>

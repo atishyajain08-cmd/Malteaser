@@ -6,7 +6,7 @@
     "price": 2850,
     "section": "new-arrivals",
     "image_url": "assets/white-tshirt.svg",
-    "label": "New Arrival",
+    "label": "Casual",
     "sort_order": 1
   },
   {
@@ -16,7 +16,7 @@
     "price": 3450,
     "section": "new-arrivals",
     "image_url": "assets/white-tshirt.svg",
-    "label": "Editor Pick",
+    "label": "Evening",
     "sort_order": 2
   },
   {

@@ -1730,7 +1730,8 @@ blockquote cite {
   margin: 28px 0 0;
 }
 
-.tab-strip a {
+.tab-strip a,
+.tab-strip button {
   min-height: 42px;
   padding: 11px 15px;
   border: 1px solid rgba(34, 34, 34, 0.16);
@@ -1742,9 +1743,15 @@ blockquote cite {
 }
 
 .tab-strip a.active,
-.tab-strip a:hover {
+.tab-strip a:hover,
+.tab-strip button.active,
+.tab-strip button:hover {
   background: var(--charcoal);
   color: var(--ivory);
+}
+
+.arrival-empty {
+  margin-top: 18px;
 }
 
 .login-hero {

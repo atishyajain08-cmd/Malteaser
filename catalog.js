@@ -22,6 +22,8 @@
   const localKey = "malteaser_catalog_items";
   const cartKey = "malteaser_cart";
   const wishlistKey = "malteaser_wishlist";
+  let catalogItems = [];
+  let activeArrivalFilter = "all";
 
   function formatPrice(value) {
     const price = Number(value || 0);
@@ -146,6 +148,26 @@
       </article>`;
   }
 
+  function arrivalCategory(item) {
+    const value = String(item.label || "").toLowerCase();
+    if (value.includes("work")) return "workwear";
+    if (value.includes("even")) return "evening";
+    return "casual";
+  }
+
+  function renderArrivalProducts() {
+    const container = document.querySelector('[data-catalog-section="new-arrivals"]');
+    if (!container) return;
+    const arrivals = catalogItems.filter((item) => item.section === "new-arrivals");
+    const filtered = activeArrivalFilter === "all"
+      ? arrivals
+      : arrivals.filter((item) => arrivalCategory(item) === activeArrivalFilter);
+    container.innerHTML = filtered.map(productCard).join("");
+    const empty = document.querySelector("[data-arrival-empty]");
+    if (empty) empty.hidden = filtered.length > 0;
+    window.lucide?.createIcons();
+  }
+
   function renderProduct(item) {
     const root = document.querySelector("[data-product-detail]");
     if (!root || !item) return;
@@ -222,6 +244,17 @@
     const cartButton = event.target.closest("[data-cart-item]");
     const wishlistButton = event.target.closest("[data-wishlist-item]");
     const removeCartButton = event.target.closest("[data-remove-cart]");
+    const arrivalFilterButton = event.target.closest("[data-arrival-filter]");
+
+    if (arrivalFilterButton) {
+      activeArrivalFilter = arrivalFilterButton.dataset.arrivalFilter;
+      document.querySelectorAll("[data-arrival-filter]").forEach((button) => {
+        const isActive = button === arrivalFilterButton;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+      renderArrivalProducts();
+    }
 
     if (cartButton) {
       event.preventDefault();
@@ -305,11 +338,14 @@
     const status = document.querySelector("[data-catalog-status]");
     try {
       const items = await loadCatalog();
+      catalogItems = items;
       document.querySelectorAll("[data-catalog-section]").forEach((container) => {
         const section = container.dataset.catalogSection;
+        if (section === "new-arrivals") return;
         const filtered = items.filter((item) => item.section === section);
         container.innerHTML = filtered.map(productCard).join("");
       });
+      renderArrivalProducts();
 
       const params = new URLSearchParams(location.search);
       const selected = items.find((item) => String(item.id) === params.get("id"))
