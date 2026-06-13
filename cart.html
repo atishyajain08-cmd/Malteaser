@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=quantity-stock-2">
+  <link rel="stylesheet" href="styles.css?v=storefront-complete-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=quantity-stock-2"></script>
+  <script defer src="catalog.js?v=storefront-complete-1"></script>
   <script defer src="script.js?v=brand-loader-size-2"></script>
 </head>
 <body class="inner-page">
@@ -20,7 +20,19 @@
   <main class="page-band" style="padding-top: 150px;">
     <div class="split-layout">
       <section><p class="eyebrow">Shopping bag</p><h1>Your cart</h1><div data-cart-items></div></section>
-      <aside class="checkout-summary"><p class="eyebrow">Order summary</p><h2 data-cart-total>Rs. 0</h2><p>Includes premium packaging. Shipping and taxes calculated at checkout.</p><a href="checkout.html" class="button button--gold magnetic">Checkout</a></aside>
+      <aside class="checkout-summary">
+        <p class="eyebrow">Order summary</p>
+        <div class="summary-line"><span>Subtotal</span><strong data-cart-subtotal>Rs. 0</strong></div>
+        <div class="summary-line" data-discount-line hidden><span>Private edit discount</span><strong data-cart-discount>- Rs. 0</strong></div>
+        <h2 data-cart-total>Rs. 0</h2>
+        <form class="coupon-form" data-coupon-form>
+          <label for="coupon">Coupon code</label>
+          <div><input id="coupon" name="coupon" type="text" placeholder="Try MALTEASER10"><button type="submit">Apply</button></div>
+          <p data-coupon-message aria-live="polite"></p>
+        </form>
+        <p>Includes premium packaging. Shipping and taxes calculated at checkout.</p>
+        <a href="checkout.html" class="button button--gold magnetic">Checkout</a>
+      </aside>
     </div>
   </main>
 </body>

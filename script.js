@@ -313,3 +313,23 @@ document.querySelectorAll(".magnetic").forEach((button) => {
     button.style.transform = "";
   });
 });
+
+document.querySelectorAll("[data-demo-form]").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(form));
+    const enquiries = JSON.parse(localStorage.getItem("malteaser_enquiries") || "[]");
+    enquiries.unshift({
+      ...values,
+      type: location.pathname.includes("bulk-enquiry") ? "Bulk enquiry" : "Contact enquiry",
+      created_at: new Date().toISOString()
+    });
+    localStorage.setItem("malteaser_enquiries", JSON.stringify(enquiries));
+    form.reset();
+    const message = form.querySelector("[data-demo-message]");
+    if (message) {
+      message.textContent = "Thank you. Your enquiry has been recorded for the Malteaser team.";
+      message.dataset.type = "success";
+    }
+  });
+});

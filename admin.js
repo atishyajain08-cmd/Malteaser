@@ -10,6 +10,7 @@
   const addMessage = document.querySelector("[data-add-message]");
   const removeMessage = document.querySelector("[data-remove-message]");
   const itemsRoot = document.querySelector("[data-admin-items]");
+  const businessMessage = document.querySelector("[data-business-message]");
   let inventoryDialog = document.querySelector("[data-inventory-dialog]");
   let inventoryForm = document.querySelector("[data-inventory-form]");
   let pendingUpload = null;
@@ -164,6 +165,55 @@
     window.lucide?.createIcons();
   }
 
+  function csvDownload(filename, rows) {
+    if (!rows.length) return false;
+    const columns = Object.keys(rows[0]);
+    const escape = (value) => `"${String(value ?? "").replace(/"/g, "\"\"")}"`;
+    const csv = [columns.map(escape).join(","), ...rows.map((row) => columns.map((column) => escape(row[column])).join(","))].join("\n");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    return true;
+  }
+
+  async function loadBusinessTools() {
+    if (!client) return;
+    const { data, error } = await client.from("catalog_items").select("*").order("created_at", { ascending: false });
+    if (error) return message(businessMessage, error.message, "error");
+    const products = data || [];
+    const stock = products.reduce((total, item) => {
+      const inventory = inventoryFromDescription(item.description) || {};
+      return total + Object.values(inventory).reduce((sum, value) => sum + Number(value || 0), 0);
+    }, 0);
+    const enquiries = JSON.parse(localStorage.getItem("malteaser_enquiries") || "[]");
+    document.querySelector("[data-admin-product-count]").textContent = products.length;
+    document.querySelector("[data-admin-stock-count]").textContent = stock;
+    document.querySelector("[data-admin-enquiry-count]").textContent = enquiries.length;
+    document.querySelector("[data-export-products]").onclick = () => {
+      const rows = products.map((item) => {
+        const inventory = inventoryFromDescription(item.description) || {};
+        return {
+          title: item.title,
+          price: item.price,
+          section: item.section,
+          subsection: item.label,
+          stock_s: inventory.S || 0,
+          stock_m: inventory.M || 0,
+          stock_l: inventory.L || 0,
+          stock_xl: inventory.XL || 0,
+          active: item.is_active,
+          created_at: item.created_at
+        };
+      });
+      message(businessMessage, csvDownload("malteaser-products.csv", rows) ? "Product CSV downloaded." : "No products to export.", "success");
+    };
+    document.querySelector("[data-export-enquiries]").onclick = () => {
+      message(businessMessage, csvDownload("malteaser-enquiries.csv", enquiries) ? "Enquiry CSV downloaded." : "No enquiries to export.", "success");
+    };
+  }
+
   document.querySelectorAll("[data-admin-mode]").forEach((button) => {
     button.addEventListener("click", () => {
       document.querySelectorAll("[data-admin-mode]").forEach((item) => item.classList.toggle("active", item === button));
@@ -171,6 +221,7 @@
         panel.hidden = panel.dataset.adminPanel !== button.dataset.adminMode;
       });
       if (button.dataset.adminMode === "remove") loadAdminItems();
+      if (button.dataset.adminMode === "business") loadBusinessTools();
     });
   });
 

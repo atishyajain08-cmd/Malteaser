@@ -24,8 +24,11 @@
   const wishlistKey = "malteaser_wishlist";
   const catalogUpdatedKey = "malteaser_catalog_updated_at";
   const arrivalFilterKey = "malteaser_arrival_filter";
+  const couponKey = "malteaser_coupon";
   let catalogItems = [];
   let activeArrivalFilter = sessionStorage.getItem(arrivalFilterKey) || "all";
+  let catalogSearch = "";
+  let catalogSort = "featured";
   let catalogRefreshPromise = null;
 
   function formatPrice(value) {
@@ -184,9 +187,19 @@
       button.setAttribute("aria-pressed", String(isActive));
     });
     const arrivals = catalogItems.filter((item) => item.section === "new-arrivals");
-    const filtered = activeArrivalFilter === "all"
+    let filtered = activeArrivalFilter === "all"
       ? arrivals
       : arrivals.filter((item) => arrivalCategory(item) === activeArrivalFilter);
+    if (catalogSearch) {
+      const query = catalogSearch.toLowerCase();
+      filtered = filtered.filter((item) =>
+        [item.title, item.label, cleanDescription(item.description)]
+          .some((value) => String(value || "").toLowerCase().includes(query))
+      );
+    }
+    if (catalogSort === "price-low") filtered.sort((a, b) => Number(a.price) - Number(b.price));
+    if (catalogSort === "price-high") filtered.sort((a, b) => Number(b.price) - Number(a.price));
+    if (catalogSort === "newest") filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     container.innerHTML = filtered.map(productCard).join("");
     const empty = document.querySelector("[data-arrival-empty]");
     if (empty) empty.hidden = filtered.length > 0;
@@ -243,7 +256,13 @@
         <strong>${formatPrice(Number(item.price) * quantity)}</strong>
       </article>`;
     }).join("") || '<div class="empty-state"><h2>Your cart is empty.</h2><a class="button button--dark" href="shop.html">Explore Products</a></div>';
-    const total = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
+    const subtotal = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
+    const couponApplied = localStorage.getItem(couponKey) === "MALTEASER10";
+    const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
+    const total = Math.max(0, subtotal - discount);
+    document.querySelectorAll("[data-cart-subtotal]").forEach((element) => { element.textContent = formatPrice(subtotal); });
+    document.querySelectorAll("[data-cart-discount]").forEach((element) => { element.textContent = `- ${formatPrice(discount)}`; });
+    document.querySelectorAll("[data-discount-line]").forEach((element) => { element.hidden = !discount; });
     if (totalRoot) totalRoot.textContent = formatPrice(total);
     window.lucide?.createIcons();
   }
@@ -563,5 +582,32 @@
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") renderCatalog();
+  });
+
+  document.querySelector("[data-catalog-search]")?.addEventListener("input", (event) => {
+    catalogSearch = event.target.value.trim();
+    renderArrivalProducts();
+  });
+
+  document.querySelector("[data-catalog-sort]")?.addEventListener("change", (event) => {
+    catalogSort = event.target.value;
+    renderArrivalProducts();
+  });
+
+  document.querySelector("[data-coupon-form]")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const code = String(new FormData(form).get("coupon") || "").trim().toUpperCase();
+    const message = form.querySelector("[data-coupon-message]");
+    if (code === "MALTEASER10") {
+      localStorage.setItem(couponKey, code);
+      message.textContent = "10% private edit discount applied.";
+      message.dataset.type = "success";
+    } else {
+      localStorage.removeItem(couponKey);
+      message.textContent = "This coupon is not available.";
+      message.dataset.type = "error";
+    }
+    renderCart();
   });
 })();

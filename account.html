@@ -8,9 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=storefront-complete-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script defer src="script.js"></script>
+  <script defer src="assets/vendor/supabase.min.js"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="catalog.js?v=storefront-complete-1"></script>
+  <script defer src="script.js?v=storefront-complete-1"></script>
 </head>
 <body class="inner-page">
   <header class="site-header is-scrolled">
@@ -20,7 +23,7 @@
   </header>
 
   <main class="page-band" style="padding-top: 150px;">
-    <section class="page-panel" data-reveal>
+    <section class="page-panel account-welcome" data-reveal>
       <p class="eyebrow">My Malteaser</p>
       <h1>Your customer account</h1>
       <p>Saved looks, recent orders, style notes, and private drop access will appear here.</p>
@@ -29,6 +32,11 @@
         <a href="cart.html">Shopping Bag</a>
         <a href="shop.html">New Arrivals</a>
       </div>
+    </section>
+    <section class="account-grid">
+      <article class="page-panel" data-reveal><span class="mini-kicker">Profile</span><h3>Your details</h3><p>Keep your name, delivery information, and style preferences ready for a faster checkout.</p><a class="text-button" href="login.html">Manage Login</a></article>
+      <article class="page-panel" data-reveal><span class="mini-kicker">Orders</span><h3>Order history</h3><p>Your confirmed Malteaser orders, invoices, and shipment tracking will appear here.</p><a class="text-button" href="order-confirmation.html">View Sample Order</a></article>
+      <article class="page-panel" data-reveal><span class="mini-kicker">Wishlist</span><h3>Saved edit</h3><p>Review favourites, remove pieces, or move the final selection into your shopping bag.</p><a class="text-button" href="wishlist.html">Open Wishlist</a></article>
     </section>
   </main>
 </body>

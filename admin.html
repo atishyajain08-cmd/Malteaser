@@ -8,13 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=inventory-edit-1">
+  <link rel="stylesheet" href="styles.css?v=storefront-complete-1">
   <link rel="stylesheet" href="admin-popup.css?v=inventory-edit-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
   <script defer src="catalog.js?v=inventory-edit-1"></script>
-  <script defer src="admin.js?v=inventory-edit-1"></script>
+  <script defer src="admin.js?v=business-tools-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -50,6 +50,7 @@
       <div class="admin-mode" role="tablist" aria-label="Catalog actions">
         <button class="active" type="button" data-admin-mode="add"><i data-lucide="plus"></i> Add collection</button>
         <button type="button" data-admin-mode="remove"><i data-lucide="trash-2"></i> Remove collection</button>
+        <button type="button" data-admin-mode="business"><i data-lucide="bar-chart-3"></i> Business tools</button>
       </div>
 
       <section class="admin-panel" data-admin-panel="add">
@@ -84,6 +85,25 @@
       <section class="admin-panel" data-admin-panel="remove" hidden>
         <p class="admin-message" data-remove-message aria-live="polite"></p>
         <div class="admin-items" data-admin-items></div>
+      </section>
+
+      <section class="admin-panel admin-business" data-admin-panel="business" hidden>
+        <div class="admin-metrics">
+          <article><span>Published products</span><strong data-admin-product-count>0</strong></article>
+          <article><span>Units in inventory</span><strong data-admin-stock-count>0</strong></article>
+          <article><span>Saved enquiries</span><strong data-admin-enquiry-count>0</strong></article>
+        </div>
+        <div class="admin-tool-list">
+          <article>
+            <div><strong>Product catalogue</strong><p>Download product, price, section, and size inventory data.</p></div>
+            <button class="button button--light" type="button" data-export-products><i data-lucide="download"></i> Export CSV</button>
+          </article>
+          <article>
+            <div><strong>Customer enquiries</strong><p>Download contact and bulk-order enquiries captured on this device.</p></div>
+            <button class="button button--light" type="button" data-export-enquiries><i data-lucide="download"></i> Export CSV</button>
+          </article>
+        </div>
+        <p class="admin-message" data-business-message aria-live="polite"></p>
       </section>
     </section>
   </main>
