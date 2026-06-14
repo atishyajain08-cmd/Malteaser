@@ -5,7 +5,7 @@ create table if not exists public.catalog_items (
   title text not null,
   description text default '',
   price integer not null default 0 check (price >= 0),
-  section text not null check (section in ('new-arrivals', 'collections', 'lookbook', 'product')),
+  section text not null check (section in ('new-arrivals', 'collections', 'lookbook', 'product', 'ferris-wheel')),
   label text default 'Malteaser',
   image_url text not null,
   storage_path text,
@@ -13,6 +13,13 @@ create table if not exists public.catalog_items (
   is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+alter table public.catalog_items
+drop constraint if exists catalog_items_section_check;
+
+alter table public.catalog_items
+add constraint catalog_items_section_check
+check (section in ('new-arrivals', 'collections', 'lookbook', 'product', 'ferris-wheel'));
 
 alter table public.catalog_items enable row level security;
 
