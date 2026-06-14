@@ -37,6 +37,7 @@ window.setTimeout(hideBrandLoader, 4500);
 
 const header = document.querySelector(".site-header");
 const revealItems = document.querySelectorAll("[data-reveal]");
+const gatewayCards = document.querySelectorAll(".gateway-card");
 const parallaxLayers = document.querySelectorAll(".parallax-layer");
 const assembly = document.querySelector(".assembly");
 const horizontal = document.querySelector(".horizontal-showcase");
@@ -63,6 +64,20 @@ const revealObserver = new IntersectionObserver(
 );
 
 revealItems.forEach((item) => revealObserver.observe(item));
+
+const gatewayObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      entry.target.classList.toggle("is-in-frame", entry.isIntersecting);
+    });
+  },
+  {
+    threshold: 0.42,
+    rootMargin: "-8% 0px -8% 0px"
+  }
+);
+
+gatewayCards.forEach((card) => gatewayObserver.observe(card));
 
 function updateHeader() {
   if (!header || document.body.classList.contains("inner-page")) return;
