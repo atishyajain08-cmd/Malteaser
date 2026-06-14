@@ -2308,6 +2308,56 @@ blockquote cite {
   margin-top: 24px;
 }
 
+.auth-pending [data-auth-protected] {
+  visibility: hidden;
+}
+
+.account-page {
+  padding-top: 150px;
+}
+
+.account-welcome__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.account-welcome__heading h1 {
+  margin-bottom: 8px;
+}
+
+.account-welcome__heading p {
+  margin: 0;
+}
+
+.account-welcome__heading .button {
+  flex: 0 0 auto;
+}
+
+.account-profile-card label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.account-email {
+  min-height: 24px;
+  margin: -4px 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.form-grid button[disabled],
+[data-customer-logout][disabled] {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.icon-button.is-active {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
 .catalog-status {
   margin: 0 0 24px;
   color: var(--ink-soft);
@@ -3055,6 +3105,11 @@ blockquote cite {
 
   .account-grid {
     grid-template-columns: 1fr;
+  }
+
+  .account-welcome__heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .instagram-edit__grid {

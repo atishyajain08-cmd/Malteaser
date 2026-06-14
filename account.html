@@ -12,21 +12,27 @@
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
+  <script defer src="auth.js?v=2"></script>
   <script defer src="catalog.js?v=storefront-complete-1"></script>
   <script defer src="script.js?v=storefront-complete-1"></script>
 </head>
-<body class="inner-page">
+<body class="inner-page auth-pending">
   <header class="site-header is-scrolled">
     <a href="index.html" class="brand brand--logo" aria-label="Malteaser home"><img src="assets/malteaser-logo.png" alt=""></a>
     <nav class="main-nav" aria-label="Primary navigation"><a href="shop.html">New Arrivals</a><a href="collections.html">Collections</a><a href="lookbook.html">Lookbook</a><a href="product.html">Product</a></nav>
-    <div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button" href="login.html" aria-label="Customer login"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div>
+    <div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button is-active" href="account.html" aria-label="Customer account"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div>
   </header>
 
-  <main class="page-band" style="padding-top: 150px;">
+  <main class="page-band account-page" data-auth-protected hidden>
     <section class="page-panel account-welcome" data-reveal>
       <p class="eyebrow">My Malteaser</p>
-      <h1>Your customer account</h1>
-      <p>Saved looks, recent orders, style notes, and private drop access will appear here.</p>
+      <div class="account-welcome__heading">
+        <div>
+          <h1>Welcome, <span data-customer-name>Malteaser Customer</span>.</h1>
+          <p>Signed in as <strong data-customer-email></strong></p>
+        </div>
+        <button class="button button--outline" type="button" data-customer-logout>Log Out</button>
+      </div>
       <div class="tab-strip">
         <a class="active" href="wishlist.html">Saved Looks</a>
         <a href="cart.html">Shopping Bag</a>
@@ -34,7 +40,19 @@
       </div>
     </section>
     <section class="account-grid">
-      <article class="page-panel" data-reveal><span class="mini-kicker">Profile</span><h3>Your details</h3><p>Keep your name, delivery information, and style preferences ready for a faster checkout.</p><a class="text-button" href="login.html">Manage Login</a></article>
+      <article class="page-panel account-profile-card" data-reveal>
+        <span class="mini-kicker">Profile</span>
+        <h3>Your details</h3>
+        <form class="form-grid" data-customer-profile>
+          <label for="account-name">Full name</label>
+          <input id="account-name" name="full_name" type="text" autocomplete="name" minlength="2" data-profile-name required>
+          <label>Email</label>
+          <p class="account-email" data-customer-email></p>
+          <button class="button button--dark" type="submit">Save Details</button>
+          <p class="form-message" data-auth-message aria-live="polite"></p>
+        </form>
+        <a class="text-button" href="forgot-password.html">Change Password</a>
+      </article>
       <article class="page-panel" data-reveal><span class="mini-kicker">Orders</span><h3>Order history</h3><p>Your confirmed Malteaser orders, invoices, and shipment tracking will appear here.</p><a class="text-button" href="order-confirmation.html">View Sample Order</a></article>
       <article class="page-panel" data-reveal><span class="mini-kicker">Wishlist</span><h3>Saved edit</h3><p>Review favourites, remove pieces, or move the final selection into your shopping bag.</p><a class="text-button" href="wishlist.html">Open Wishlist</a></article>
     </section>
