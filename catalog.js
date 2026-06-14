@@ -206,6 +206,26 @@
     window.lucide?.createIcons();
   }
 
+  function renderFerrisProducts() {
+    const slots = Array.from(document.querySelectorAll(".ferris-product"));
+    if (!slots.length) return;
+    const items = catalogItems.filter((item) => item.section === "ferris-wheel").slice(0, slots.length);
+    items.forEach((item, index) => {
+      const slot = slots[index];
+      const image = slot.querySelector("img");
+      const name = slot.querySelector(".ferris-product__name");
+      const price = slot.querySelector("strong");
+      slot.href = `product.html?id=${encodeURIComponent(item.id)}`;
+      slot.setAttribute("aria-label", `View ${item.title}`);
+      if (image) {
+        image.src = item.image_url || "assets/white-tshirt.svg";
+        image.alt = item.title;
+      }
+      if (name) name.textContent = item.title;
+      if (price) price.textContent = formatPrice(item.price);
+    });
+  }
+
   function renderProduct(item) {
     const root = document.querySelector("[data-product-detail]");
     if (!root || !item) return;
@@ -523,6 +543,7 @@
     try {
       const items = await loadCatalog();
       catalogItems = items;
+      renderFerrisProducts();
       document.querySelectorAll("[data-catalog-section]").forEach((container) => {
         const section = container.dataset.catalogSection;
         if (section === "new-arrivals") return;

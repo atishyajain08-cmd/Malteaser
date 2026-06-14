@@ -63,6 +63,16 @@
     })[character]);
   }
 
+  function sectionName(section) {
+    return {
+      "new-arrivals": "New Arrivals",
+      collections: "Collections",
+      lookbook: "Lookbook",
+      product: "Product",
+      "ferris-wheel": "Homepage Ferris Wheel"
+    }[section] || String(section || "").replaceAll("-", " ");
+  }
+
   function inventoryFromDescription(description) {
     const match = String(description || "").match(/\[malteaser_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]/);
     return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]) } : null;
@@ -117,7 +127,9 @@
           section: values.section,
           label: values.section === "new-arrivals"
             ? values.arrival_category
-            : values.section === "product" ? "Product" : "Collection",
+            : values.section === "product"
+              ? "Product"
+              : values.section === "ferris-wheel" ? "Ferris Wheel" : "Collection",
           image_url: publicData.publicUrl,
           storage_path: path,
           is_active: true,
@@ -149,7 +161,7 @@
       return `
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
-        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.section.replace("-", " "))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(sectionName(item.section))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
         <div class="admin-item__actions">
           <button class="admin-item__edit" type="button"
             data-edit-inventory="${escapeHtml(item.id)}"
