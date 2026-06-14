@@ -38,6 +38,8 @@ window.setTimeout(hideBrandLoader, 4500);
 const header = document.querySelector(".site-header");
 const revealItems = document.querySelectorAll("[data-reveal]");
 const gatewayCards = document.querySelectorAll(".gateway-card");
+const ferrisStage = document.querySelector("[data-ferris-stage]");
+const ferrisWheels = document.querySelectorAll("[data-ferris-wheel]");
 const parallaxLayers = document.querySelectorAll(".parallax-layer");
 const assembly = document.querySelector(".assembly");
 const horizontal = document.querySelector(".horizontal-showcase");
@@ -78,6 +80,28 @@ const gatewayObserver = new IntersectionObserver(
 );
 
 gatewayCards.forEach((card) => gatewayObserver.observe(card));
+
+if (ferrisStage && ferrisWheels.length) {
+  const ferrisObserver = new IntersectionObserver(
+    ([entry]) => ferrisStage.classList.toggle("is-active", entry.isIntersecting),
+    { threshold: 0.08 }
+  );
+  ferrisObserver.observe(ferrisStage);
+
+  ferrisStage.addEventListener("pointermove", (event) => {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    const rect = ferrisStage.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+    ferrisStage.style.setProperty("--ferris-x", x.toFixed(3));
+    ferrisStage.style.setProperty("--ferris-y", y.toFixed(3));
+  }, { passive: true });
+
+  ferrisStage.addEventListener("pointerleave", () => {
+    ferrisStage.style.setProperty("--ferris-x", "0");
+    ferrisStage.style.setProperty("--ferris-y", "0");
+  });
+}
 
 function updateHeader() {
   if (!header || document.body.classList.contains("inner-page")) return;
