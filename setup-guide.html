@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malteaser Setup Guide</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f8f4ee 0%, #efe6d9 100%);
+      padding: 2rem;
+      line-height: 1.6;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      color: #666;
+    }
+    .step {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-left: 4px solid #1a1a1a;
+    }
+    .step h2 {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      color: #1a1a1a;
+    }
+    .step-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: #1a1a1a;
+      color: white;
+      border-radius: 50%;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .step ol {
+      margin: 1rem 0;
+      padding-left: 2rem;
+    }
+    .step li {
+      margin: 0.8rem 0;
+      line-height: 1.8;
+    }
+    .code-block {
+      background: #f5f5f5;
+      border-left: 3px solid #1a1a1a;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      font-family: "Monaco", monospace;
+      overflow-x: auto;
+      font-size: 0.9rem;
+    }
+    .copy-btn {
+      float: right;
+      padding: 0.5rem 1rem;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: #333; }
+    .tip {
+      background: #eff6ff;
+      border-left: 3px solid #3b82f6;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      color: #1e40af;
+    }
+    .warning {
+      background: #fffbeb;
+      border-left: 3px solid #f59e0b;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      color: #92400e;
+    }
+    .success {
+      background: #f0fdf4;
+      border-left: 3px solid #10b981;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      color: #166534;
+    }
+    .checklist {
+      list-style: none;
+      margin: 1rem 0;
+    }
+    .checklist li {
+      padding: 0.5rem 0;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .checklist li::before {
+      content: "☐";
+      font-size: 1.2rem;
+      color: #999;
+      cursor: pointer;
+    }
+    .checklist li:has(input:checked)::before {
+      content: "☑";
+      color: #10b981;
+    }
+    .checklist input {
+      display: none;
+    }
+    .progress {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .progress-item {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .progress-item.done {
+      background: #f0fdf4;
+      border: 2px solid #10b981;
+    }
+    .progress-item strong {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .actions {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #1a1a1a;
+      color: white;
+    }
+    button:hover { background: #333; }
+    a.button {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      text-decoration: none;
+      background: #1a1a1a;
+      color: white;
+      transition: all 0.2s;
+    }
+    a.button:hover { background: #333; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🚀 Malteaser Setup Guide</h1>
+      <p class="subtitle">Complete your e-commerce storefront configuration in 5 simple steps</p>
+    </header>
+
+    <div class="progress" id="progress">
+      <div class="progress-item" data-step="1">
+        <strong>1</strong>
+        <span>Supabase Project</span>
+      </div>
+      <div class="progress-item" data-step="2">
+        <strong>2</strong>
+        <span>Database Schema</span>
+      </div>
+      <div class="progress-item" data-step="3">
+        <strong>3</strong>
+        <span>Admin User</span>
+      </div>
+      <div class="progress-item" data-step="4">
+        <strong>4</strong>
+        <span>Configuration</span>
+      </div>
+      <div class="progress-item" data-step="5">
+        <strong>5</strong>
+        <span>Go Live</span>
+      </div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step">
+      <h2>
+        <div class="step-number">1</div>
+        Create a Supabase Project
+      </h2>
+      <ol>
+        <li>Go to <a href="https://supabase.com" target="_blank">supabase.com</a> and sign up for a free account</li>
+        <li>Click "Create a new project"</li>
+        <li>Choose a project name (e.g., "malteaser-store")</li>
+        <li>Select a database password and region closest to your users</li>
+        <li>Wait for the project to initialize (2-3 minutes)</li>
+        <li>You'll land on the project dashboard</li>
+      </ol>
+      <div class="tip">
+        💡 <strong>Tip:</strong> Save your database password safely — you'll need it for backups
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <h2>
+        <div class="step-number">2</div>
+        Create Database Tables
+      </h2>
+      <ol>
+        <li>In your Supabase project, go to <strong>SQL Editor</strong> (left sidebar)</li>
+        <li>Click "New Query"</li>
+        <li>Copy the SQL schema below and paste it:</li>
+      </ol>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyToClipboard(this.nextElementSibling.textContent)">Copy</button>
+        <code id="schema-sql">-- Run this SQL in Supabase SQL Editor
+CREATE TABLE IF NOT EXISTS catalog_items (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  price NUMERIC NOT NULL,
+  image_url TEXT,
+  storage_path TEXT,
+  section TEXT,
+  label TEXT,
+  is_active BOOLEAN DEFAULT true,
+  sort_order SMALLINT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE catalog_items ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read" ON catalog_items
+  FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Admin create" ON catalog_items
+  FOR INSERT WITH CHECK (auth.jwt() ->> 'role' = 'authenticated');
+
+CREATE POLICY "Admin update" ON catalog_items
+  FOR UPDATE USING (auth.jwt() ->> 'role' = 'authenticated');
+
+CREATE POLICY "Admin delete" ON catalog_items
+  FOR DELETE USING (auth.jwt() ->> 'role' = 'authenticated');</code>
+      </div>
+      <ol start="4">
+        <li>Click "Run" to execute the SQL</li>
+        <li>You should see a success message</li>
+      </ol>
+      <div class="success">
+        ✓ Tables created successfully
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <h2>
+        <div class="step-number">3</div>
+        Create Admin User
+      </h2>
+      <ol>
+        <li>Go to <strong>Authentication > Users</strong> in your Supabase project</li>
+        <li>Click "Invite"</li>
+        <li>Enter your email address</li>
+        <li>Choose a strong password (8+ characters, mix of letters/numbers/symbols)</li>
+        <li>Click "Send Invite"</li>
+      </ol>
+      <div class="warning">
+        ⚠️ <strong>Important:</strong> This user will have full admin access. Keep credentials safe!
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <h2>
+        <div class="step-number">4</div>
+        Configure Credentials
+      </h2>
+      <ol>
+        <li>In Supabase, go to <strong>Settings > API</strong></li>
+        <li>Copy your <strong>Project URL</strong></li>
+        <li>Copy your <strong>anon/public key</strong> (NOT the service role key)</li>
+        <li>Open the file <code>supabase-config.js</code> in this project</li>
+        <li>Replace the URL and key:
+          <div class="code-block">
+window.MALTEASER_SUPABASE = {
+  url: "https://YOUR_PROJECT_URL.supabase.co",
+  anonKey: "YOUR_ANON_KEY"
+};
+          </div>
+        </li>
+        <li>Save the file and commit to git</li>
+      </ol>
+      <div class="warning">
+        ⚠️ <strong>Never commit the service-role key!</strong> Only the public anon key is safe to commit.
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step">
+      <h2>
+        <div class="step-number">5</div>
+        Test & Go Live
+      </h2>
+      <ol>
+        <li>Run the <a href="health-check.html">Health Check</a> to verify everything is connected</li>
+        <li>Test the <a href="admin.html">Admin Panel</a> — sign in with your admin credentials</li>
+        <li>Try adding a product (upload image + metadata)</li>
+        <li>Visit the <a href="index.html">Homepage</a> to see your product</li>
+        <li>Push your changes to GitHub:
+          <div class="code-block">git add . && git commit -m "Configure Supabase" && git push origin gh-pages</div>
+        </li>
+      </ol>
+      <div class="success">
+        ✓ Setup complete! Your store is now live
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="step">
+      <h2>
+        <div class="step-number">✓</div>
+        Setup Checklist
+      </h2>
+      <ul class="checklist">
+        <li><input type="checkbox"><label>Supabase project created</label></li>
+        <li><input type="checkbox"><label>Database tables initialized</label></li>
+        <li><input type="checkbox"><label>Admin user created</label></li>
+        <li><input type="checkbox"><label>Credentials configured in supabase-config.js</label></li>
+        <li><input type="checkbox"><label>Health check passed</label></li>
+        <li><input type="checkbox"><label>Admin panel login works</label></li>
+        <li><input type="checkbox"><label>First product created</label></li>
+        <li><input type="checkbox"><label>Changes pushed to GitHub</label></li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <a href="health-check.html" class="button">🏥 Run Health Check</a>
+      <a href="admin.html" class="button">👨‍💼 Go to Admin</a>
+      <a href="index.html" class="button">🏠 View Homepage</a>
+    </div>
+  </div>
+
+  <script>
+    // Copy to clipboard
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 2000);
+      });
+    }
+
+    // Interactive checklist
+    document.querySelectorAll(".checklist input").forEach(input => {
+      input.addEventListener("change", () => {
+        const allChecked = Array.from(document.querySelectorAll(".checklist input"))
+          .every(i => i.checked);
+        // Could update progress here
+      });
+    });
+  </script>
+</body>
+</html>

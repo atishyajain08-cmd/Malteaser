@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malteaser Health Check</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8f4ee;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #1a1a1a;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+    }
+    .status-group {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      border-radius: 6px;
+      background: #f5f5f5;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      margin: 0.5rem 0;
+      background: white;
+      border-radius: 4px;
+      border-left: 4px solid #ccc;
+    }
+    .status-item.success {
+      border-left-color: #10b981;
+      background: #f0fdf4;
+    }
+    .status-item.warning {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .status-item.error {
+      border-left-color: #ef4444;
+      background: #fef2f2;
+    }
+    .status-item.loading {
+      border-left-color: #3b82f6;
+      background: #eff6ff;
+    }
+    .icon {
+      font-size: 1.5rem;
+      min-width: 24px;
+    }
+    .icon.success::before { content: "✓"; color: #10b981; }
+    .icon.error::before { content: "✗"; color: #ef4444; }
+    .icon.warning::before { content: "⚠"; color: #f59e0b; }
+    .icon.loading::before { content: "⟳"; color: #3b82f6; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .details {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 0.5rem;
+      font-family: "Monaco", monospace;
+      background: rgba(0,0,0,0.02);
+      padding: 0.5rem;
+      border-radius: 3px;
+      overflow: auto;
+    }
+    .actions {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #1a1a1a;
+      color: white;
+    }
+    button:hover { background: #333; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .button-secondary {
+      background: #e5e7eb;
+      color: #1a1a1a;
+    }
+    .button-secondary:hover { background: #d1d5db; }
+    .code-block {
+      background: #1a1a1a;
+      color: #10b981;
+      padding: 1rem;
+      border-radius: 4px;
+      font-family: "Monaco", monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏥 Malteaser Health Check</h1>
+    <p class="subtitle">Diagnostic tool to verify system connectivity and configuration</p>
+
+    <div class="status-group">
+      <h2 style="margin-bottom: 1rem; color: #1a1a1a;">Core Configuration</h2>
+
+      <div class="status-item loading" id="config-status">
+        <div class="icon loading"></div>
+        <div>
+          <strong>Supabase Configuration</strong>
+          <div class="details">Checking...</div>
+        </div>
+      </div>
+
+      <div class="status-item loading" id="supabase-lib-status">
+        <div class="icon loading"></div>
+        <div>
+          <strong>Supabase Library</strong>
+          <div class="details">Checking...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-group">
+      <h2 style="margin-bottom: 1rem; color: #1a1a1a;">Supabase Connection</h2>
+
+      <div class="status-item loading" id="connection-status">
+        <div class="icon loading"></div>
+        <div>
+          <strong>Backend Connection</strong>
+          <div class="details">Attempting to connect...</div>
+        </div>
+      </div>
+
+      <div class="status-item loading" id="auth-status">
+        <div class="icon loading"></div>
+        <div>
+          <strong>Authentication Service</strong>
+          <div class="details">Checking...</div>
+        </div>
+      </div>
+
+      <div class="status-item loading" id="database-status">
+        <div class="icon loading"></div>
+        <div>
+          <strong>Database & Tables</strong>
+          <div class="details">Checking...</div>
+        </div>
+      </div>
+
+      <div class="status-item loading" id="storage-status">
+        <div class="icon loading"></div>
+        <div>
+          <strong>Storage Buckets</strong>
+          <div class="details">Checking...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-group">
+      <h2 style="margin-bottom: 1rem; color: #1a1a1a;">Local Storage</h2>
+
+      <div class="status-item loading" id="storage-local-status">
+        <div class="icon loading"></div>
+        <div>
+          <strong>Browser Storage</strong>
+          <div class="details">Checking...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button onclick="location.reload()">🔄 Refresh Checks</button>
+      <button class="button-secondary" onclick="downloadDiagnostics()">📥 Download Report</button>
+      <button class="button-secondary" onclick="history.back()">← Go Back</button>
+    </div>
+  </div>
+
+  <script defer src="assets/vendor/supabase.min.js"></script>
+  <script defer src="supabase-config.js"></script>
+  <script>
+    const diagnostics = [];
+
+    function updateStatus(elementId, status, message, details = "") {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+
+      el.className = `status-item ${status}`;
+      el.querySelector("strong").textContent = message;
+      el.querySelector(".details").textContent = details || "OK";
+
+      diagnostics.push({ check: message, status, details });
+    }
+
+    async function runHealthChecks() {
+      // 1. Check Configuration
+      const config = window.MALTEASER_SUPABASE || {};
+      const hasUrl = Boolean(config.url);
+      const hasKey = Boolean(config.anonKey);
+
+      if (!hasUrl || !hasKey) {
+        updateStatus("config-status", "error", "Supabase Configuration",
+          `URL: ${hasUrl ? "✓" : "✗"} | Key: ${hasKey ? "✓" : "✗"}`);
+        updateStatus("supabase-lib-status", "error", "Supabase Library",
+          "Configuration incomplete - cannot proceed");
+        return;
+      }
+
+      updateStatus("config-status", "success", "Supabase Configuration",
+        `URL: ${config.url.split('.')[0]}...`);
+
+      // 2. Check Supabase Library
+      if (!window.supabase) {
+        updateStatus("supabase-lib-status", "error", "Supabase Library",
+          "Supabase library not loaded");
+        return;
+      }
+      updateStatus("supabase-lib-status", "success", "Supabase Library",
+        "Loaded and ready");
+
+      // 3. Create Client
+      let client;
+      try {
+        client = window.supabase.createClient(config.url, config.anonKey);
+        updateStatus("connection-status", "success", "Backend Connection",
+          `Connected to ${config.url.split('/')[2]}`);
+      } catch (error) {
+        updateStatus("connection-status", "error", "Backend Connection",
+          error.message);
+        return;
+      }
+
+      // 4. Check Auth
+      try {
+        const { data } = await client.auth.getSession();
+        const session = data?.session;
+        if (session) {
+          updateStatus("auth-status", "success", "Authentication Service",
+            `Logged in as ${session.user?.email}`);
+        } else {
+          updateStatus("auth-status", "warning", "Authentication Service",
+            "Not authenticated (expected for public check)");
+        }
+      } catch (error) {
+        updateStatus("auth-status", "error", "Authentication Service",
+          error.message);
+      }
+
+      // 5. Check Database
+      try {
+        const { data, error, count } = await client
+          .from("catalog_items")
+          .select("id", { count: "exact", head: true })
+          .limit(1);
+
+        if (error) throw error;
+        updateStatus("database-status", "success", "Database & Tables",
+          `Connected (${count} products in catalog)`);
+      } catch (error) {
+        updateStatus("database-status", "error", "Database & Tables",
+          error?.message || "Table not found or inaccessible");
+      }
+
+      // 6. Check Storage
+      try {
+        const { data, error } = await client.storage.listBuckets();
+        if (error) throw error;
+        const buckets = (data || []).map(b => b.name).join(", ");
+        updateStatus("storage-status", "success", "Storage Buckets",
+          buckets || "(no buckets yet)");
+      } catch (error) {
+        updateStatus("storage-status", "warning", "Storage Buckets",
+          "Storage inaccessible - create 'catalog' bucket if needed");
+      }
+
+      // 7. Check Local Storage
+      try {
+        localStorage.setItem("malteaser_health_check", Date.now());
+        const value = localStorage.getItem("malteaser_health_check");
+        localStorage.removeItem("malteaser_health_check");
+        if (value) {
+          updateStatus("storage-local-status", "success", "Browser Storage",
+            "localStorage working");
+        } else {
+          throw new Error("Could not read value");
+        }
+      } catch (error) {
+        updateStatus("storage-local-status", "error", "Browser Storage",
+          "localStorage unavailable (private mode or disabled)");
+      }
+    }
+
+    function downloadDiagnostics() {
+      const report = diagnostics
+        .map(d => `${d.status.toUpperCase()}: ${d.check}\n  ${d.details}`)
+        .join("\n\n");
+
+      const text = `Malteaser Health Check Report
+Generated: ${new Date().toISOString()}
+
+${report}
+
+Config URL: ${window.MALTEASER_SUPABASE?.url || "Not set"}
+User Agent: ${navigator.userAgent}
+`;
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+      link.download = `malteaser-health-${Date.now()}.txt`;
+      link.click();
+    }
+
+    // Run checks when loaded
+    setTimeout(runHealthChecks, 100);
+  </script>
+</body>
+</html>
