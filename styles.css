@@ -334,6 +334,7 @@ button {
 }
 
 .hero__media {
+  inset: -2px;
   transform: translate3d(
     calc(var(--hero-mouse-x) * -10px),
     calc(var(--hero-mouse-y) * -6px + var(--hero-scroll-depth)),
@@ -647,18 +648,6 @@ h3 {
 .button--gold {
   background: var(--gold);
   color: var(--charcoal);
-}
-
-.hero__side-note {
-  position: absolute;
-  right: clamp(20px, 5vw, 76px);
-  bottom: 72px;
-  z-index: 4;
-  width: min(240px, 34vw);
-  padding: 18px;
-  border: 1px solid rgba(248, 244, 238, 0.38);
-  background: rgba(248, 244, 238, 0.08);
-  backdrop-filter: blur(16px);
 }
 
 .hero__scroll-cue {
@@ -1430,7 +1419,6 @@ h3 {
   line-height: 1.7;
 }
 
-.hero__side-note span,
 .product-card__body span,
 .category-tile span,
 .size-guide__top,
@@ -1440,13 +1428,6 @@ h3 {
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
-}
-
-.hero__side-note strong {
-  display: block;
-  margin-top: 6px;
-  font-family: var(--serif);
-  font-size: 24px;
 }
 
 .marquee {
@@ -2455,30 +2436,6 @@ blockquote cite {
 
 .instagram-edit__grid a:hover img {
   transform: scale(1.04);
-}
-
-.whatsapp-float {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 30;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 0 17px;
-  border: 1px solid rgba(248, 244, 238, 0.28);
-  border-radius: 999px;
-  background: #1f6f52;
-  color: #fff;
-  box-shadow: 0 16px 40px rgba(34, 34, 34, 0.24);
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.whatsapp-float svg {
-  width: 18px;
 }
 
 .quick-modal {
@@ -3561,10 +3518,6 @@ blockquote cite {
 
   .site-header {
     grid-template-columns: 1fr auto;
-  }
-
-  .hero__side-note {
-    display: none;
   }
 
   .hero__content {
