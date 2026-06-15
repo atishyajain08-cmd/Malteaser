@@ -1066,261 +1066,186 @@ h3 {
 }
 
 /* ============================================================
-   3D Flashcard collection (replaces the Ferris wheels)
+   3D Turntable decks (15 revolving flashcards, 3 sections of 5)
    ============================================================ */
-.flashcard-stage {
-  --ferris-x: 0;
-  --ferris-y: 0;
+.deck-collection {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(18px, 2.4vw, 44px);
-  width: min(1320px, 100%);
-  margin: 0 auto;
-  padding: 30px 0 10px;
-  perspective: 1800px;
-  transform-style: preserve-3d;
-}
-
-.flashcard {
-  --tilt: 0deg;
-  --lift: 0px;
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: clamp(14px, 1.6vw, 22px);
-  padding: clamp(22px, 1.9vw, 32px) clamp(18px, 1.6vw, 26px);
-  border-radius: 28px;
-  background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(247, 242, 235, 0.7));
-  border: 1px solid rgba(201, 168, 106, 0.4);
-  box-shadow:
-    0 36px 70px -34px rgba(34, 34, 34, 0.55),
-    0 4px 14px -8px rgba(34, 34, 34, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  overflow: hidden;
-  transform-style: preserve-3d;
-  transform:
-    rotateY(calc(var(--tilt) + var(--ferris-x) * 5deg))
-    rotateX(calc(var(--ferris-y) * -4deg))
-    translateY(var(--lift))
-    translateZ(0);
-  transition:
-    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
-    box-shadow 0.6s ease;
-  animation: flashFloat 7s ease-in-out infinite;
+  gap: clamp(36px, 5vw, 72px);
+  width: min(1100px, 100%);
+  margin: 0 auto;
 }
 
-.flashcard--left { --tilt: 11deg; animation-delay: -1.5s; }
-.flashcard--center { --tilt: 0deg; --lift: -22px; z-index: 3; animation-delay: -3.5s; }
-.flashcard--right { --tilt: -11deg; animation-delay: -5s; }
-
-.flashcard--center {
-  background:
-    linear-gradient(165deg, rgba(28, 28, 32, 0.96), rgba(14, 14, 16, 0.92));
-  border-color: rgba(201, 168, 106, 0.55);
-  box-shadow:
-    0 46px 80px -32px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-.flashcard:hover {
-  --tilt: 0deg;
-  z-index: 5;
-  transform:
-    rotateY(calc(var(--ferris-x) * 2deg))
-    rotateX(calc(var(--ferris-y) * -2deg))
-    translateY(calc(var(--lift) - 14px))
-    translateZ(70px)
-    scale(1.025);
-  box-shadow:
-    0 60px 100px -34px rgba(34, 34, 34, 0.62),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  animation-play-state: paused;
-}
-
-.flashcard__sheen {
-  position: absolute;
-  inset: 0;
-  border-radius: 28px;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.flashcard__sheen::before {
-  content: "";
-  position: absolute;
-  top: -60%;
-  left: -70%;
-  width: 55%;
-  height: 220%;
-  background: linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-  transform: rotate(9deg);
-  animation: flashSheen 6.5s ease-in-out infinite;
-}
-
-.flashcard--center .flashcard__sheen::before {
-  background: linear-gradient(115deg, transparent, rgba(201, 168, 106, 0.32), transparent);
-}
-
-.flashcard__head {
-  position: relative;
-  z-index: 1;
+.deck-section__head {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(201, 168, 106, 0.32);
-  transform: translateZ(30px);
+  margin-bottom: clamp(4px, 1vw, 14px);
+  text-align: left;
 }
 
-.flashcard__num {
+.deck-section__num {
   font-family: var(--serif);
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--gold);
   line-height: 1;
 }
 
-.flashcard__title h3 {
+.deck-section__head h3 {
   margin: 0;
   font-family: var(--serif);
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--charcoal);
 }
 
-.flashcard__title p {
+.deck-section__head p {
   margin: 2px 0 0;
   font-size: 11px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(34, 34, 34, 0.55);
+  color: rgba(34, 34, 34, 0.5);
 }
 
-.flashcard--center .flashcard__title h3 { color: #fff; }
-.flashcard--center .flashcard__title p { color: rgba(255, 255, 255, 0.6); }
-.flashcard--center .flashcard__head { border-bottom-color: rgba(201, 168, 106, 0.4); }
-
-.flashcard__items {
+/* Stage holds the perspective + the gentle float */
+.deck-stage {
   position: relative;
-  z-index: 1;
+  height: 340px;
+  perspective: 1150px;
+  animation: deckFloat 7s ease-in-out infinite;
+}
+
+/* The rotating ring */
+.deck {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 176px;
+  height: 244px;
+  margin: -122px 0 0 -88px;
+  transform-style: preserve-3d;
+  transform: translateZ(-230px) rotateX(-7deg) rotateY(0deg);
+  animation: deckSpin 30s linear infinite;
+}
+
+.deck-stage:hover .deck {
+  animation-play-state: paused;
+}
+
+/* Each card sits on the ring face, evenly spaced (72deg apart) */
+.deck-card {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  transform: translateZ(24px);
-}
-
-.flashcard-product {
-  display: grid;
-  grid-template-columns: 50px 1fr auto;
   align-items: center;
-  gap: 14px;
-  padding: 10px 12px;
-  border-radius: 16px;
+  gap: 8px;
+  padding: 16px 14px 18px;
+  border-radius: 22px;
   text-decoration: none;
   color: var(--charcoal);
-  border: 1px solid transparent;
-  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), background 0.35s ease, border-color 0.35s ease;
+  background: linear-gradient(165deg, #fffdf9 0%, #f4ede2 100%);
+  border: 5px solid var(--charcoal);
+  box-shadow:
+    0 22px 38px -16px rgba(0, 0, 0, 0.55),
+    0 6px 14px -8px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(201, 168, 106, 0.3),
+    inset 0 0 22px rgba(34, 34, 34, 0.06);
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--i) * 72deg)) translateZ(230px);
+  transition: box-shadow 0.4s ease;
 }
 
-.flashcard-product:hover {
-  background: rgba(34, 34, 34, 0.05);
-  border-color: rgba(201, 168, 106, 0.45);
-  transform: translateX(5px) translateZ(18px);
+.deck-card:hover {
+  box-shadow:
+    0 30px 50px -16px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(201, 168, 106, 0.6),
+    inset 0 0 26px rgba(34, 34, 34, 0.08);
 }
 
-.flashcard--center .flashcard-product { color: rgba(255, 255, 255, 0.92); }
-.flashcard--center .flashcard-product:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(201, 168, 106, 0.5);
+.deck-card__tag {
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
 }
 
-.flashcard-product__thumb {
+.deck-card__img {
+  flex: 1;
   display: grid;
   place-items: center;
-  width: 50px;
-  height: 50px;
+  width: 100%;
   border-radius: 14px;
-  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.16), rgba(20, 20, 22, 0.9));
-  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.18), 0 6px 14px -6px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  background: radial-gradient(circle at 50% 38%, rgba(34, 34, 34, 0.05), transparent 70%);
 }
 
-.flashcard-product__thumb img {
-  width: 84%;
-  height: 84%;
+.deck-card__img img {
+  width: 78%;
+  max-height: 130px;
   object-fit: contain;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.3));
 }
 
-.flashcard-product__body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.flashcard-product__name {
+.deck-card__name {
   font-family: var(--serif);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.02em;
 }
 
-.flashcard-product__meta {
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(34, 34, 34, 0.45);
-}
-
-.flashcard--center .flashcard-product__meta { color: rgba(255, 255, 255, 0.5); }
-
-.flashcard-product__price {
-  font-size: 13px;
+.deck-card__price {
+  font-size: 12px;
   font-weight: 700;
   color: #80683d;
-  white-space: nowrap;
 }
 
-.flashcard--center .flashcard-product__price { color: var(--gold); }
-
-@keyframes flashFloat {
-  0%, 100% { transform: rotateY(calc(var(--tilt) + var(--ferris-x) * 5deg)) rotateX(calc(var(--ferris-y) * -4deg)) translateY(var(--lift)); }
-  50% { transform: rotateY(calc(var(--tilt) + var(--ferris-x) * 5deg)) rotateX(calc(var(--ferris-y) * -4deg)) translateY(calc(var(--lift) - 12px)); }
+@keyframes deckSpin {
+  from { transform: translateZ(-230px) rotateX(-7deg) rotateY(0deg); }
+  to   { transform: translateZ(-230px) rotateX(-7deg) rotateY(360deg); }
 }
 
-@keyframes flashSheen {
-  0% { left: -70%; }
-  55%, 100% { left: 130%; }
+@keyframes deckFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
 }
 
-@media (max-width: 860px) {
-  .flashcard-stage {
-    grid-template-columns: 1fr;
+/* Mobile / reduced-motion: static, clickable grid (no 3D spin) */
+@media (max-width: 760px) {
+  .deck-stage {
+    height: auto;
     perspective: none;
-    gap: 20px;
-  }
-  .flashcard,
-  .flashcard--left,
-  .flashcard--center,
-  .flashcard--right {
-    --tilt: 0deg;
-    --lift: 0px;
-    transform: none;
     animation: none;
   }
-  .flashcard:hover { transform: translateY(-6px); }
+  .deck {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    transform: none;
+    animation: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .deck-card {
+    position: static;
+    inset: auto;
+    transform: none;
+    backface-visibility: visible;
+    border-width: 4px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flashcard { animation: none; }
-  .flashcard__sheen::before { animation: none; }
+  .deck-stage { animation: none; }
+  .deck { animation: none; }
 }
+
 
 @keyframes ferrisRotate {
   from { transform: rotate(0deg) translateZ(0); }
