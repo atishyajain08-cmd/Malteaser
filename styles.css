@@ -786,8 +786,16 @@ h3 {
 .ferris-installation--hero { z-index: 3; transform: translateZ(70px); }
 .ferris-installation--right { z-index: 2; transform: rotateY(-7deg) translateZ(-35px); }
 
-.ferris-installation--left .ferris-product,
-.ferris-installation--right .ferris-product {
+/* Disable pointer events on all containers, enable only on product links */
+.ferris-installation,
+.ferris-wheel,
+.ferris-wheel__rim,
+.ferris-wheel__spokes,
+.ferris-wheel__hub {
+  pointer-events: none;
+}
+
+.ferris-product {
   pointer-events: auto;
   cursor: pointer;
 }
