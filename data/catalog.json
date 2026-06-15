@@ -7,7 +7,9 @@
     "section": "new-arrivals",
     "image_url": "assets/white-tshirt.svg",
     "label": "Casual",
-    "sort_order": 1
+    "sort_order": 1,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 1
   },
   {
     "id": "starter-goldline-midi",
@@ -17,7 +19,9 @@
     "section": "new-arrivals",
     "image_url": "assets/white-tshirt.svg",
     "label": "Evening",
-    "sort_order": 2
+    "sort_order": 2,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 1
   },
   {
     "id": "starter-casual-chic",
@@ -27,7 +31,9 @@
     "section": "collections",
     "image_url": "assets/white-tshirt.svg",
     "label": "Collection",
-    "sort_order": 1
+    "sort_order": 1,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 2
   },
   {
     "id": "starter-workwear",
@@ -37,7 +43,9 @@
     "section": "collections",
     "image_url": "assets/white-tshirt.svg",
     "label": "Collection",
-    "sort_order": 2
+    "sort_order": 2,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 2
   },
   {
     "id": "starter-lookbook-morning",
@@ -47,7 +55,9 @@
     "section": "lookbook",
     "image_url": "assets/white-tshirt.svg",
     "label": "Lookbook",
-    "sort_order": 1
+    "sort_order": 1,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 3
   },
   {
     "id": "starter-lookbook-evening",
@@ -57,7 +67,9 @@
     "section": "lookbook",
     "image_url": "assets/white-tshirt.svg",
     "label": "Lookbook",
-    "sort_order": 2
+    "sort_order": 2,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 3
   },
   {
     "id": "starter-aurelian",
@@ -67,6 +79,68 @@
     "section": "product",
     "image_url": "assets/white-tshirt.svg",
     "label": "Signature Product",
-    "sort_order": 1
+    "sort_order": 1,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 1
+  },
+  {
+    "id": "ferris-wheel-1-4",
+    "title": "Ivory Evening Drape",
+    "description": "Luxurious ivory gown with flowing silk drape and hand-finished details.",
+    "price": 3950,
+    "section": "new-arrivals",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Evening Wear",
+    "sort_order": 8,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 1
+  },
+  {
+    "id": "ferris-wheel-2-3",
+    "title": "Linen Elegance Dress",
+    "description": "Lightweight linen blend with structured bodice and flowing skirt.",
+    "price": 2650,
+    "section": "collections",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Summer Collection",
+    "sort_order": 9,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 2
+  },
+  {
+    "id": "ferris-wheel-2-4",
+    "title": "Champagne Shimmer",
+    "description": "Soft champagne silk with subtle metallic shimmer throughout.",
+    "price": 3150,
+    "section": "collections",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Party Wear",
+    "sort_order": 10,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 2
+  },
+  {
+    "id": "ferris-wheel-3-3",
+    "title": "Rose Garden Jacket",
+    "description": "Tailored jacket in rose tone with delicate embroidery details.",
+    "price": 2899,
+    "section": "lookbook",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Outerwear",
+    "sort_order": 11,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 3
+  },
+  {
+    "id": "ferris-wheel-3-4",
+    "title": "Golden Hour Ensemble",
+    "description": "Matching set with gold accents, perfect for evening occasions.",
+    "price": 3599,
+    "section": "lookbook",
+    "image_url": "assets/white-tshirt.svg",
+    "label": "Luxury Collection",
+    "sort_order": 12,
+    "sizes": ["S", "M", "L", "XL"],
+    "ferris_wheel": 3
   }
 ]
