@@ -1066,83 +1066,134 @@ h3 {
 }
 
 /* ============================================================
-   Continuous conveyor belt of flashcards (3.75 visible at once)
+   3D Turntable decks (15 revolving flashcards, 3 sections of 5)
    ============================================================ */
-.belt {
-  --belt: min(1240px, 94vw);   /* visible width of the conveyor */
-  --visible: 3.75;             /* how many cards show at one time */
-  --gap: 16px;
+.deck-collection {
   position: relative;
   z-index: 2;
-  width: var(--belt);
-  margin: 0 auto;
-  padding: 26px 0;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 3%, #000 92%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 3%, #000 92%, transparent 100%);
-}
-
-.belt__track {
   display: flex;
-  width: max-content;
-  will-change: transform;
-  animation: beltScroll 60s linear infinite;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(4px, 1vw, 16px);
+  width: min(1340px, 100%);
+  margin: 0 auto;
 }
 
-.belt:hover .belt__track {
+.deck-section {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.deck-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: clamp(4px, 1vw, 14px);
+  text-align: left;
+}
+
+.deck-section__num {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.deck-section__head h3 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+
+.deck-section__head p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(34, 34, 34, 0.5);
+}
+
+/* Stage holds the perspective + the gentle float */
+.deck-stage {
+  position: relative;
+  height: 300px;
+  perspective: 1000px;
+  animation: deckFloat 7s ease-in-out infinite;
+}
+
+/* The rotating ring */
+.deck {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150px;
+  height: 206px;
+  margin: -103px 0 0 -75px;
+  transform-style: preserve-3d;
+  transform: translateZ(-150px) rotateX(-7deg) rotateY(0deg);
+  animation: deckSpin 30s linear infinite;
+}
+
+.deck-stage:hover .deck {
   animation-play-state: paused;
 }
 
-/* Each card: a flat charcoal-on-cream flashcard, ~1/3.75 of the belt */
+/* Each card sits on the ring face, evenly spaced (72deg apart) */
 .deck-card {
-  flex: 0 0 calc(var(--belt) / var(--visible) - var(--gap));
-  margin-right: var(--gap);
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 18px 16px 20px;
+  padding: 16px 14px 18px;
   border-radius: 22px;
   text-decoration: none;
   color: var(--charcoal);
   background: linear-gradient(165deg, #fffdf9 0%, #f4ede2 100%);
   border: 5px solid var(--charcoal);
   box-shadow:
-    0 20px 34px -16px rgba(0, 0, 0, 0.5),
-    0 6px 14px -8px rgba(0, 0, 0, 0.35),
+    0 22px 38px -16px rgba(0, 0, 0, 0.55),
+    0 6px 14px -8px rgba(0, 0, 0, 0.4),
     inset 0 0 0 1px rgba(201, 168, 106, 0.3),
-    inset 0 0 22px rgba(34, 34, 34, 0.05);
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
+    inset 0 0 22px rgba(34, 34, 34, 0.06);
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--i) * 72deg)) translateZ(150px);
+  transition: box-shadow 0.4s ease;
 }
 
 .deck-card:hover {
-  transform: translateY(-8px);
   box-shadow:
-    0 32px 50px -16px rgba(0, 0, 0, 0.58),
+    0 30px 50px -16px rgba(0, 0, 0, 0.6),
     inset 0 0 0 1px rgba(201, 168, 106, 0.6),
     inset 0 0 26px rgba(34, 34, 34, 0.08);
 }
 
 .deck-card__tag {
   font-size: 9px;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--gold);
   font-weight: 700;
 }
 
 .deck-card__img {
+  flex: 1;
   display: grid;
   place-items: center;
   width: 100%;
-  height: 168px;
   border-radius: 14px;
   background: radial-gradient(circle at 50% 38%, rgba(34, 34, 34, 0.05), transparent 70%);
 }
 
 .deck-card__img img {
-  width: 72%;
-  max-height: 150px;
+  width: 78%;
+  max-height: 130px;
   object-fit: contain;
   filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.3));
 }
@@ -1152,7 +1203,6 @@ h3 {
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  text-align: center;
 }
 
 .deck-card__price {
@@ -1161,30 +1211,57 @@ h3 {
   color: #80683d;
 }
 
-/* The track holds 2 identical copies (cloned at runtime); -50% loops seamlessly */
-@keyframes beltScroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+@keyframes deckSpin {
+  from { transform: translateZ(-150px) rotateX(-7deg) rotateY(0deg); }
+  to   { transform: translateZ(-150px) rotateX(-7deg) rotateY(360deg); }
 }
 
+@keyframes deckFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+/* Narrow desktop / tablet: stack the 3 decks vertically (still revolving) */
 @media (max-width: 900px) {
-  .belt { --visible: 2.4; }
+  .deck-collection {
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(24px, 4vw, 44px);
+    width: min(520px, 100%);
+  }
 }
 
-@media (max-width: 600px) {
-  .belt { --visible: 1.3; --belt: 92vw; }
-  .deck-card__img { height: 200px; }
-  .deck-card__img img { max-height: 180px; }
+/* Mobile / reduced-motion: static, clickable grid (no 3D spin) */
+@media (max-width: 760px) {
+  .deck-stage {
+    height: auto;
+    perspective: none;
+    animation: none;
+  }
+  .deck {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    transform: none;
+    animation: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .deck-card {
+    position: static;
+    inset: auto;
+    transform: none;
+    backface-visibility: visible;
+    border-width: 4px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .belt {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .belt__track { animation: none; }
+  .deck-stage { animation: none; }
+  .deck { animation: none; }
 }
-
 
 
 @keyframes ferrisRotate {
