@@ -1136,7 +1136,7 @@ h3 {
   margin: -103px 0 0 -75px;
   transform-style: preserve-3d;
   transform: translateZ(-150px) rotateX(-7deg) rotateY(0deg);
-  animation: deckSpin 27.27s linear infinite;
+  animation: deckSpin 20s linear infinite;
 }
 
 .deck-stage:hover .deck {
