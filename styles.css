@@ -782,9 +782,15 @@ h3 {
   transition: transform 0.65s cubic-bezier(.2,.7,.2,1), filter 0.5s ease;
 }
 
-.ferris-installation--left { transform: rotateY(7deg) translateZ(-35px); }
+.ferris-installation--left { z-index: 2; transform: rotateY(7deg) translateZ(-35px); }
 .ferris-installation--hero { z-index: 3; transform: translateZ(70px); }
-.ferris-installation--right { transform: rotateY(-7deg) translateZ(-35px); }
+.ferris-installation--right { z-index: 2; transform: rotateY(-7deg) translateZ(-35px); }
+
+.ferris-installation--left .ferris-product,
+.ferris-installation--right .ferris-product {
+  pointer-events: auto;
+  cursor: pointer;
+}
 
 .ferris-installation__label {
   display: flex;
