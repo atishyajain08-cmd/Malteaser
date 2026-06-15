@@ -13,8 +13,8 @@
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=ferris-wheel-slots-1"></script>
-  <script defer src="admin.js?v=ferris-wheel-slots-1"></script>
+  <script defer src="catalog.js?v=flashcard-backend-2"></script>
+  <script defer src="admin.js?v=flashcard-backend-2"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -65,7 +65,7 @@
               <option value="collections">Collections</option>
               <option value="lookbook">Lookbook</option>
               <option value="product">Product section</option>
-              <option value="ferris-wheel">Homepage Ferris Wheel</option>
+              <option value="ferris-wheel">Homepage 3D Flash Cards</option>
             </select>
           </label>
           <label data-arrival-category-field>
@@ -77,14 +77,15 @@
               <option value="Evening">Evening</option>
             </select>
           </label>
-          <label data-ferris-wheel-field hidden>
-            Choose Ferris wheel
-            <select name="ferris_wheel" disabled>
-              <option value="">Choose Wheel 1, 2, or 3</option>
-              <option value="Ferris Wheel 1">Wheel 1 - Essential Forms</option>
-              <option value="Ferris Wheel 2">Wheel 2 - Maison Blanc</option>
-              <option value="Ferris Wheel 3">Wheel 3 - Modern Classics</option>
+          <label data-flash-card-field hidden>
+            Choose flash-card deck
+            <select name="flash_card" disabled>
+              <option value="">Choose Flash Card 1, 2, or 3</option>
+              <option value="Flash Card 1">Flash Card 1 - Essential Forms</option>
+              <option value="Flash Card 2">Flash Card 2 - Maison Noir</option>
+              <option value="Flash Card 3">Flash Card 3 - Modern Classics</option>
             </select>
+            <small>Each deck can contain a maximum of 5 uploaded products.</small>
           </label>
           <label>Photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required></label>
           <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Upload collection</button>

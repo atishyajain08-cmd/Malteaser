@@ -195,6 +195,11 @@
     return "casual";
   }
 
+  function flashCardNumber(label) {
+    const match = String(label || "").match(/(?:flash\s*card|ferris\s*wheel)\s*([123])/i);
+    return match ? match[1] : "";
+  }
+
   function renderArrivalProducts() {
     const container = document.querySelector('[data-catalog-section="new-arrivals"]');
     if (!container) return;
@@ -263,6 +268,38 @@
     );
     openSlots.forEach((slot, index) => {
       if (legacyItems[index]) placeItem(slot, legacyItems[index]);
+    });
+  }
+
+  function renderFlashCardProducts() {
+    const decks = Array.from(document.querySelectorAll(".deck-section"));
+    if (!decks.length) return;
+    const uploaded = catalogItems.filter((item) =>
+      item.section === "ferris-wheel" && flashCardNumber(item.label)
+    );
+
+    decks.forEach((deck, index) => {
+      const deckNumber = String(index + 1);
+      const slots = Array.from(deck.querySelectorAll(".deck-card"));
+      const products = uploaded
+        .filter((item) => flashCardNumber(item.label) === deckNumber)
+        .slice(0, 5);
+
+      products.forEach((item, slotIndex) => {
+        const slot = slots[slotIndex];
+        const image = slot?.querySelector("img");
+        const name = slot?.querySelector(".deck-card__name");
+        const price = slot?.querySelector(".deck-card__price");
+        if (!slot) return;
+        slot.href = `product.html?id=${encodeURIComponent(item.id)}`;
+        slot.setAttribute("aria-label", `View ${item.title}`);
+        if (image) {
+          image.src = item.image_url || "assets/black-tshirt.svg";
+          image.alt = item.title;
+        }
+        if (name) name.textContent = item.title;
+        if (price) price.textContent = formatPrice(item.price);
+      });
     });
   }
 
@@ -584,6 +621,7 @@
       const items = await loadCatalog();
       catalogItems = items;
       renderFerrisProducts();
+      renderFlashCardProducts();
       document.querySelectorAll("[data-catalog-section]").forEach((container) => {
         const section = container.dataset.catalogSection;
         if (section === "new-arrivals") return;

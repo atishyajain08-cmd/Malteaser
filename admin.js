@@ -18,8 +18,8 @@
   let sectionSelect = document.querySelector("[data-section-select], [name='section']");
   let arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
   let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
-  let ferrisWheelField = document.querySelector("[data-ferris-wheel-field]");
-  let ferrisWheelSelect = ferrisWheelField?.querySelector("select");
+  let flashCardField = document.querySelector("[data-flash-card-field]");
+  let flashCardSelect = flashCardField?.querySelector("select");
 
   function ensureUploadFields() {
     if (!addForm || !sectionSelect) return;
@@ -40,20 +40,21 @@
       arrivalCategorySelect = arrivalCategoryField.querySelector("select");
     }
 
-    if (!ferrisWheelField) {
-      ferrisWheelField = document.createElement("label");
-      ferrisWheelField.dataset.ferrisWheelField = "";
-      ferrisWheelField.hidden = true;
-      ferrisWheelField.innerHTML = `
-        Choose Ferris wheel
-        <select name="ferris_wheel" disabled>
-          <option value="">Choose Wheel 1, 2, or 3</option>
-          <option value="Ferris Wheel 1">Wheel 1 - Essential Forms</option>
-          <option value="Ferris Wheel 2">Wheel 2 - Maison Blanc</option>
-          <option value="Ferris Wheel 3">Wheel 3 - Modern Classics</option>
-        </select>`;
-      arrivalCategoryField.insertAdjacentElement("afterend", ferrisWheelField);
-      ferrisWheelSelect = ferrisWheelField.querySelector("select");
+    if (!flashCardField) {
+      flashCardField = document.createElement("label");
+      flashCardField.dataset.flashCardField = "";
+      flashCardField.hidden = true;
+      flashCardField.innerHTML = `
+        Choose flash-card deck
+        <select name="flash_card" disabled>
+          <option value="">Choose Flash Card 1, 2, or 3</option>
+          <option value="Flash Card 1">Flash Card 1 - Essential Forms</option>
+          <option value="Flash Card 2">Flash Card 2 - Maison Noir</option>
+          <option value="Flash Card 3">Flash Card 3 - Modern Classics</option>
+        </select>
+        <small>Each deck can contain a maximum of 5 uploaded products.</small>`;
+      arrivalCategoryField.insertAdjacentElement("afterend", flashCardField);
+      flashCardSelect = flashCardField.querySelector("select");
     }
 
     addForm.querySelector(".admin-stock")?.remove();
@@ -87,7 +88,7 @@
       collections: "Collections",
       lookbook: "Lookbook",
       product: "Product",
-      "ferris-wheel": "Homepage Ferris Wheel"
+      "ferris-wheel": "Homepage 3D Flash Cards"
     }[section] || String(section || "").replaceAll("-", " ");
   }
 
@@ -147,7 +148,7 @@
             ? values.arrival_category
             : values.section === "product"
               ? "Product"
-              : values.section === "ferris-wheel" ? values.ferris_wheel : "Collection",
+              : values.section === "ferris-wheel" ? values.flash_card : "Collection",
           image_url: publicData.publicUrl,
           storage_path: path,
           is_active: true,
@@ -257,18 +258,18 @@
 
   function updateUploadFields() {
     const isNewArrival = sectionSelect?.value === "new-arrivals";
-    const isFerrisWheel = sectionSelect?.value === "ferris-wheel";
+    const isFlashCard = sectionSelect?.value === "ferris-wheel";
     if (arrivalCategoryField) arrivalCategoryField.hidden = !isNewArrival;
     if (arrivalCategorySelect) {
       arrivalCategorySelect.required = isNewArrival;
       arrivalCategorySelect.disabled = !isNewArrival;
       if (!isNewArrival) arrivalCategorySelect.value = "";
     }
-    if (ferrisWheelField) ferrisWheelField.hidden = !isFerrisWheel;
-    if (ferrisWheelSelect) {
-      ferrisWheelSelect.required = isFerrisWheel;
-      ferrisWheelSelect.disabled = !isFerrisWheel;
-      if (!isFerrisWheel) ferrisWheelSelect.value = "";
+    if (flashCardField) flashCardField.hidden = !isFlashCard;
+    if (flashCardSelect) {
+      flashCardSelect.required = isFlashCard;
+      flashCardSelect.disabled = !isFlashCard;
+      if (!isFlashCard) flashCardSelect.value = "";
     }
   }
 
@@ -308,6 +309,35 @@
     const formData = new FormData(addForm);
     const files = formData.getAll("photos").filter((file) => file.size > 0);
     const values = Object.fromEntries(formData);
+    if (values.section === "ferris-wheel") {
+      const deckNumber = String(values.flash_card || "").match(/[123]/)?.[0];
+      if (!deckNumber) {
+        message(addMessage, "Choose Flash Card 1, 2, or 3.", "error");
+        return;
+      }
+      const labels = [`Flash Card ${deckNumber}`, `Ferris Wheel ${deckNumber}`];
+      const { count, error } = await client
+        .from("catalog_items")
+        .select("id", { count: "exact", head: true })
+        .eq("section", "ferris-wheel")
+        .eq("is_active", true)
+        .in("label", labels);
+      if (error) {
+        message(addMessage, error.message, "error");
+        return;
+      }
+      const remaining = Math.max(0, 5 - Number(count || 0));
+      if (files.length > remaining) {
+        message(
+          addMessage,
+          remaining
+            ? `Flash Card ${deckNumber} has space for only ${remaining} more product${remaining === 1 ? "" : "s"}.`
+            : `Flash Card ${deckNumber} is full. Remove a product before adding another.`,
+          "error"
+        );
+        return;
+      }
+    }
     pendingUpload = { files, values };
     pendingInventoryEdit = null;
     inventoryForm?.reset();
@@ -436,8 +466,8 @@
     sectionSelect = document.querySelector("[data-section-select], [name='section']");
     arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
     arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
-    ferrisWheelField = document.querySelector("[data-ferris-wheel-field]");
-    ferrisWheelSelect = ferrisWheelField?.querySelector("select");
+    flashCardField = document.querySelector("[data-flash-card-field]");
+    flashCardSelect = flashCardField?.querySelector("select");
     inventoryDialog = document.querySelector("[data-inventory-dialog]");
     inventoryForm = document.querySelector("[data-inventory-form]");
     updateUploadFields();
