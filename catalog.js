@@ -138,6 +138,19 @@
     return [...local, ...starter];
   }
 
+  // The homepage 3D flashcard tees are defined statically in catalog.json.
+  // Always make them resolvable on the product page, even when Supabase is the
+  // primary source and doesn't (yet) contain them.
+  async function loadFlashcardProducts() {
+    try {
+      const response = await fetch("data/catalog.json");
+      const starter = await response.json();
+      return starter.filter((item) => String(item.id).startsWith("card-"));
+    } catch {
+      return [];
+    }
+  }
+
   async function loadCatalog() {
     if (!client) return loadFallback();
     const { data, error } = await client
@@ -147,7 +160,11 @@
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return data || [];
+    const remote = data || [];
+    const remoteIds = new Set(remote.map((item) => String(item.id)));
+    const flashcards = await loadFlashcardProducts();
+    const extras = flashcards.filter((item) => !remoteIds.has(String(item.id)));
+    return [...remote, ...extras];
   }
 
   function productCard(item) {

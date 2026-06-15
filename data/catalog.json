@@ -142,5 +142,170 @@
     "sort_order": 12,
     "sizes": ["S", "M", "L", "XL"],
     "ferris_wheel": 3
+  },
+  {
+    "id": "card-1-1",
+    "title": "Onyx Tee 01",
+    "description": "A deep, even black with a clean crew neck — the everyday foundation piece.",
+    "price": 1590,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Essential Forms",
+    "sort_order": 1,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-1-2",
+    "title": "Carbon Tee 02",
+    "description": "Structured cotton with a refined drape and reinforced shoulders.",
+    "price": 1690,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Essential Forms",
+    "sort_order": 2,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-1-3",
+    "title": "Eclipse Tee 03",
+    "description": "Soft matte finish that holds its colour wash after wash.",
+    "price": 1790,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Essential Forms",
+    "sort_order": 3,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-1-4",
+    "title": "Shadow Tee 04",
+    "description": "Relaxed silhouette with a lightly tapered hem.",
+    "price": 1650,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Essential Forms",
+    "sort_order": 4,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-1-5",
+    "title": "Midnight Tee 05",
+    "description": "Our darkest dye, finished with a subtle tonal collar.",
+    "price": 1750,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Essential Forms",
+    "sort_order": 5,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-2-1",
+    "title": "Obsidian Tee 06",
+    "description": "Premium pima cotton with a smooth, almost satin hand-feel.",
+    "price": 1890,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Maison Noir",
+    "sort_order": 6,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-2-2",
+    "title": "Raven Tee 07",
+    "description": "Sculpted fit with contour seaming for a sharp line.",
+    "price": 1990,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Maison Noir",
+    "sort_order": 7,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-2-3",
+    "title": "Noir Tee 08",
+    "description": "The signature Maison black — elevated, timeless, essential.",
+    "price": 2090,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Maison Noir",
+    "sort_order": 8,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-2-4",
+    "title": "Slate Tee 09",
+    "description": "Heavier weight with a structured neckline that keeps its shape.",
+    "price": 2190,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Maison Noir",
+    "sort_order": 9,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-2-5",
+    "title": "Graphite Tee 10",
+    "description": "Our flagship black tee, hand-finished with tonal stitching.",
+    "price": 2290,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Maison Noir",
+    "sort_order": 10,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-3-1",
+    "title": "Ink Tee 11",
+    "description": "Pure, minimal black with single-needle seams.",
+    "price": 1690,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Modern Classics",
+    "sort_order": 11,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-3-2",
+    "title": "Ash Tee 12",
+    "description": "Clean architectural lines and a precise modern fit.",
+    "price": 1790,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Modern Classics",
+    "sort_order": 12,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-3-3",
+    "title": "Coal Tee 13",
+    "description": "A rich saturated black built to layer and last.",
+    "price": 1890,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Modern Classics",
+    "sort_order": 13,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-3-4",
+    "title": "Ebony Tee 14",
+    "description": "Superior drape with a soft, broken-in feel from day one.",
+    "price": 1990,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Modern Classics",
+    "sort_order": 14,
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "card-3-5",
+    "title": "Jet Tee 15",
+    "description": "Archival black tee — collect it, wear it, keep it for years.",
+    "price": 2090,
+    "section": "ferris-wheel",
+    "image_url": "assets/black-tshirt.svg",
+    "label": "Modern Classics",
+    "sort_order": 15,
+    "sizes": ["S", "M", "L", "XL"]
   }
 ]

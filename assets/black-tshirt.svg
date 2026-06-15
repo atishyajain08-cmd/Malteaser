@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Malteaser black T-shirt">
+  <defs>
+    <linearGradient id="teeBody" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#3c3c40"/>
+      <stop offset="0.45" stop-color="#1d1d20"/>
+      <stop offset="1" stop-color="#0b0b0d"/>
+    </linearGradient>
+    <linearGradient id="teeSheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="0.35" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="0.7" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="teeGlow" cx="0.5" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <g>
+    <path d="M100 42
+      C90 42 80 44 73 47
+      L44 61 C40 63 39 67 41 71 L55 90
+      C57 92 61 92 63 88 L69 76 L69 163
+      C69 167 71 169 75 169 L125 169
+      C129 169 131 167 131 163 L131 76 L137 88
+      C139 92 143 92 145 90 L159 71
+      C161 67 160 63 156 61 L127 47
+      C120 44 110 42 100 42 Z"
+      fill="url(#teeBody)" stroke="#000000" stroke-opacity="0.35" stroke-width="1.2"/>
+
+    <path d="M100 42
+      C90 42 80 44 73 47
+      L44 61 C40 63 39 67 41 71 L55 90
+      C57 92 61 92 63 88 L69 76 L69 163
+      C69 167 71 169 75 169 L125 169
+      C129 169 131 167 131 163 L131 76 L137 88
+      C139 92 143 92 145 90 L159 71
+      C161 67 160 63 156 61 L127 47
+      C120 44 110 42 100 42 Z"
+      fill="url(#teeSheen)"/>
+
+    <path d="M82 45 C88 56 112 56 118 45
+      C115 52 105 55 100 55 C95 55 85 52 82 45 Z"
+      fill="#000000" fill-opacity="0.45"/>
+
+    <path d="M84 46 C90 54 110 54 116 46"
+      fill="none" stroke="#5a5a60" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round"/>
+
+    <ellipse cx="92" cy="92" rx="30" ry="44" fill="url(#teeGlow)"/>
+  </g>
+</svg>
