@@ -207,11 +207,13 @@
   }
 
   function renderFerrisProducts() {
-    const slots = Array.from(document.querySelectorAll(".ferris-product"));
-    if (!slots.length) return;
-    const items = catalogItems.filter((item) => item.section === "ferris-wheel").slice(0, slots.length);
-    items.forEach((item, index) => {
-      const slot = slots[index];
+    const wheels = Array.from(document.querySelectorAll("[data-ferris-wheel]"));
+    if (!wheels.length) return;
+    const items = catalogItems.filter((item) => item.section === "ferris-wheel");
+    const assignedIds = new Set();
+    const openSlots = [];
+
+    function placeItem(slot, item) {
       const image = slot.querySelector("img");
       const name = slot.querySelector(".ferris-product__name");
       const price = slot.querySelector("strong");
@@ -223,6 +225,27 @@
       }
       if (name) name.textContent = item.title;
       if (price) price.textContent = formatPrice(item.price);
+      assignedIds.add(String(item.id));
+    }
+
+    wheels.forEach((wheel) => {
+      const wheelNumber = wheel.dataset.ferrisWheel;
+      const slots = Array.from(wheel.querySelectorAll(".ferris-product"));
+      const wheelItems = items.filter((item) =>
+        String(item.label || "").trim().toLowerCase() === `ferris wheel ${wheelNumber}`
+      );
+      slots.forEach((slot, index) => {
+        if (wheelItems[index]) placeItem(slot, wheelItems[index]);
+        else openSlots.push(slot);
+      });
+    });
+
+    const legacyItems = items.filter((item) =>
+      !assignedIds.has(String(item.id))
+      && !/^ferris wheel [123]$/i.test(String(item.label || "").trim())
+    );
+    openSlots.forEach((slot, index) => {
+      if (legacyItems[index]) placeItem(slot, legacyItems[index]);
     });
   }
 

@@ -13,8 +13,8 @@
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=ferris-admin-1"></script>
-  <script defer src="admin.js?v=ferris-admin-1"></script>
+  <script defer src="catalog.js?v=ferris-wheel-slots-1"></script>
+  <script defer src="admin.js?v=ferris-wheel-slots-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -75,6 +75,15 @@
               <option value="Casual">Casual</option>
               <option value="Workwear">Workwear</option>
               <option value="Evening">Evening</option>
+            </select>
+          </label>
+          <label data-ferris-wheel-field hidden>
+            Choose Ferris wheel
+            <select name="ferris_wheel" disabled>
+              <option value="">Choose Wheel 1, 2, or 3</option>
+              <option value="Ferris Wheel 1">Wheel 1 - Essential Forms</option>
+              <option value="Ferris Wheel 2">Wheel 2 - Maison Blanc</option>
+              <option value="Ferris Wheel 3">Wheel 3 - Modern Classics</option>
             </select>
           </label>
           <label>Photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required></label>

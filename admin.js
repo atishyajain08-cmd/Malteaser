@@ -18,6 +18,8 @@
   let sectionSelect = document.querySelector("[data-section-select], [name='section']");
   let arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
   let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
+  let ferrisWheelField = document.querySelector("[data-ferris-wheel-field]");
+  let ferrisWheelSelect = ferrisWheelField?.querySelector("select");
 
   function ensureUploadFields() {
     if (!addForm || !sectionSelect) return;
@@ -36,6 +38,22 @@
         </select>`;
       sectionSelect.closest("label").insertAdjacentElement("afterend", arrivalCategoryField);
       arrivalCategorySelect = arrivalCategoryField.querySelector("select");
+    }
+
+    if (!ferrisWheelField) {
+      ferrisWheelField = document.createElement("label");
+      ferrisWheelField.dataset.ferrisWheelField = "";
+      ferrisWheelField.hidden = true;
+      ferrisWheelField.innerHTML = `
+        Choose Ferris wheel
+        <select name="ferris_wheel" disabled>
+          <option value="">Choose Wheel 1, 2, or 3</option>
+          <option value="Ferris Wheel 1">Wheel 1 - Essential Forms</option>
+          <option value="Ferris Wheel 2">Wheel 2 - Maison Blanc</option>
+          <option value="Ferris Wheel 3">Wheel 3 - Modern Classics</option>
+        </select>`;
+      arrivalCategoryField.insertAdjacentElement("afterend", ferrisWheelField);
+      ferrisWheelSelect = ferrisWheelField.querySelector("select");
     }
 
     addForm.querySelector(".admin-stock")?.remove();
@@ -129,7 +147,7 @@
             ? values.arrival_category
             : values.section === "product"
               ? "Product"
-              : values.section === "ferris-wheel" ? "Ferris Wheel" : "Collection",
+              : values.section === "ferris-wheel" ? values.ferris_wheel : "Collection",
           image_url: publicData.publicUrl,
           storage_path: path,
           is_active: true,
@@ -161,7 +179,7 @@
       return `
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
-        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(sectionName(item.section))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(sectionName(item.section))}${["new-arrivals", "ferris-wheel"].includes(item.section) ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
         <div class="admin-item__actions">
           <button class="admin-item__edit" type="button"
             data-edit-inventory="${escapeHtml(item.id)}"
@@ -237,17 +255,24 @@
     });
   });
 
-  function updateArrivalCategoryField() {
+  function updateUploadFields() {
     const isNewArrival = sectionSelect?.value === "new-arrivals";
+    const isFerrisWheel = sectionSelect?.value === "ferris-wheel";
     if (arrivalCategoryField) arrivalCategoryField.hidden = !isNewArrival;
     if (arrivalCategorySelect) {
       arrivalCategorySelect.required = isNewArrival;
       arrivalCategorySelect.disabled = !isNewArrival;
       if (!isNewArrival) arrivalCategorySelect.value = "";
     }
+    if (ferrisWheelField) ferrisWheelField.hidden = !isFerrisWheel;
+    if (ferrisWheelSelect) {
+      ferrisWheelSelect.required = isFerrisWheel;
+      ferrisWheelSelect.disabled = !isFerrisWheel;
+      if (!isFerrisWheel) ferrisWheelSelect.value = "";
+    }
   }
 
-  sectionSelect?.addEventListener("change", updateArrivalCategoryField);
+  sectionSelect?.addEventListener("change", updateUploadFields);
 
   loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -346,7 +371,7 @@
       addForm.reset();
       inventoryForm.reset();
       pendingUpload = null;
-      updateArrivalCategoryField();
+      updateUploadFields();
       message(addMessage, `${records.length} photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
     } catch (error) {
       const uploadedPaths = records.map((record) => record.storage_path).filter(Boolean);
@@ -411,9 +436,11 @@
     sectionSelect = document.querySelector("[data-section-select], [name='section']");
     arrivalCategoryField = document.querySelector("[data-arrival-category-field]");
     arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
+    ferrisWheelField = document.querySelector("[data-ferris-wheel-field]");
+    ferrisWheelSelect = ferrisWheelField?.querySelector("select");
     inventoryDialog = document.querySelector("[data-inventory-dialog]");
     inventoryForm = document.querySelector("[data-inventory-form]");
-    updateArrivalCategoryField();
+    updateUploadFields();
     if (!catalog?.isConfigured) {
       setup.hidden = false;
       loginForm.querySelectorAll("input, button").forEach((element) => { element.disabled = true; });
