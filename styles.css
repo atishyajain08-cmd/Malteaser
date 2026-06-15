@@ -1072,10 +1072,17 @@ h3 {
   position: relative;
   z-index: 2;
   display: flex;
-  flex-direction: column;
-  gap: clamp(36px, 5vw, 72px);
-  width: min(1100px, 100%);
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(4px, 1vw, 16px);
+  width: min(1340px, 100%);
   margin: 0 auto;
+}
+
+.deck-section {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .deck-section__head {
@@ -1114,8 +1121,8 @@ h3 {
 /* Stage holds the perspective + the gentle float */
 .deck-stage {
   position: relative;
-  height: 340px;
-  perspective: 1150px;
+  height: 300px;
+  perspective: 1000px;
   animation: deckFloat 7s ease-in-out infinite;
 }
 
@@ -1124,11 +1131,11 @@ h3 {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 176px;
-  height: 244px;
-  margin: -122px 0 0 -88px;
+  width: 150px;
+  height: 206px;
+  margin: -103px 0 0 -75px;
   transform-style: preserve-3d;
-  transform: translateZ(-230px) rotateX(-7deg) rotateY(0deg);
+  transform: translateZ(-150px) rotateX(-7deg) rotateY(0deg);
   animation: deckSpin 30s linear infinite;
 }
 
@@ -1156,7 +1163,7 @@ h3 {
     inset 0 0 0 1px rgba(201, 168, 106, 0.3),
     inset 0 0 22px rgba(34, 34, 34, 0.06);
   backface-visibility: hidden;
-  transform: rotateY(calc(var(--i) * 72deg)) translateZ(230px);
+  transform: rotateY(calc(var(--i) * 72deg)) translateZ(150px);
   transition: box-shadow 0.4s ease;
 }
 
@@ -1205,13 +1212,23 @@ h3 {
 }
 
 @keyframes deckSpin {
-  from { transform: translateZ(-230px) rotateX(-7deg) rotateY(0deg); }
-  to   { transform: translateZ(-230px) rotateX(-7deg) rotateY(360deg); }
+  from { transform: translateZ(-150px) rotateX(-7deg) rotateY(0deg); }
+  to   { transform: translateZ(-150px) rotateX(-7deg) rotateY(360deg); }
 }
 
 @keyframes deckFloat {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-12px); }
+}
+
+/* Narrow desktop / tablet: stack the 3 decks vertically (still revolving) */
+@media (max-width: 900px) {
+  .deck-collection {
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(24px, 4vw, 44px);
+    width: min(520px, 100%);
+  }
 }
 
 /* Mobile / reduced-motion: static, clickable grid (no 3D spin) */
