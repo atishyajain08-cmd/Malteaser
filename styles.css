@@ -1075,8 +1075,8 @@ h3 {
   flex-direction: row;
   align-items: flex-start;
   justify-content: center;
-  gap: clamp(4px, 1vw, 18px);
-  width: min(1480px, 100%);
+  gap: clamp(5px, 1.2vw, 22px);
+  width: min(1776px, 100%);
   margin: 0 auto;
 }
 
@@ -1121,8 +1121,8 @@ h3 {
 /* Stage holds the perspective + the gentle float */
 .deck-stage {
   position: relative;
-  height: 470px;
-  perspective: 1200px;
+  height: 564px;
+  perspective: 1440px;
   animation: deckFloat 7s ease-in-out infinite;
 }
 
@@ -1131,11 +1131,11 @@ h3 {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 230px;
-  height: 320px;
-  margin: -160px 0 0 -115px;
+  width: 276px;
+  height: 384px;
+  margin: -192px 0 0 -138px;
   transform-style: preserve-3d;
-  transform: translateZ(-185px) rotateX(-7deg) rotateY(0deg);
+  transform: translateZ(-222px) rotateX(-7deg) rotateY(0deg);
   animation: deckSpin 14s linear infinite;
 }
 
@@ -1150,20 +1150,20 @@ h3 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 22px 18px 24px;
-  border-radius: 26px;
+  gap: 12px;
+  padding: 26px 22px 29px;
+  border-radius: 31px;
   text-decoration: none;
   color: var(--charcoal);
   background: linear-gradient(165deg, #fffdf9 0%, #f4ede2 100%);
-  border: 6px solid var(--charcoal);
+  border: 7px solid var(--charcoal);
   box-shadow:
     0 22px 38px -16px rgba(0, 0, 0, 0.55),
     0 6px 14px -8px rgba(0, 0, 0, 0.4),
     inset 0 0 0 1px rgba(201, 168, 106, 0.3),
     inset 0 0 22px rgba(34, 34, 34, 0.06);
   backface-visibility: hidden;
-  transform: rotateY(calc(var(--i) * 72deg)) translateZ(185px);
+  transform: rotateY(calc(var(--i) * 72deg)) translateZ(222px);
   transition: box-shadow 0.4s ease;
 }
 
@@ -1175,7 +1175,7 @@ h3 {
 }
 
 .deck-card__tag {
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--gold);
@@ -1187,33 +1187,33 @@ h3 {
   display: grid;
   place-items: center;
   width: 100%;
-  border-radius: 16px;
+  border-radius: 19px;
   background: radial-gradient(circle at 50% 38%, rgba(34, 34, 34, 0.05), transparent 70%);
 }
 
 .deck-card__img img {
   width: 80%;
-  max-height: 200px;
+  max-height: 240px;
   object-fit: contain;
-  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 14px 17px rgba(0, 0, 0, 0.3));
 }
 
 .deck-card__name {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 .deck-card__price {
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 700;
   color: #80683d;
 }
 
 @keyframes deckSpin {
-  from { transform: translateZ(-185px) rotateX(-7deg) rotateY(0deg); }
-  to   { transform: translateZ(-185px) rotateX(-7deg) rotateY(360deg); }
+  from { transform: translateZ(-222px) rotateX(-7deg) rotateY(0deg); }
+  to   { transform: translateZ(-222px) rotateX(-7deg) rotateY(360deg); }
 }
 
 @keyframes deckFloat {
@@ -1221,13 +1221,14 @@ h3 {
   50%      { transform: translateY(-12px); }
 }
 
-/* Narrow desktop / tablet: stack the 3 decks vertically (still revolving) */
-@media (max-width: 900px) {
+/* Below ~1500px the enlarged decks no longer fit 3-across cleanly, so
+   stack them vertically (each deck full-size and revolving). */
+@media (max-width: 1500px) {
   .deck-collection {
     flex-direction: column;
     align-items: stretch;
-    gap: clamp(24px, 4vw, 44px);
-    width: min(520px, 100%);
+    gap: clamp(28px, 4vw, 52px);
+    width: min(560px, 100%);
   }
 }
 
