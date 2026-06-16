@@ -1075,8 +1075,8 @@ h3 {
   flex-direction: row;
   align-items: flex-start;
   justify-content: center;
-  gap: clamp(4px, 1vw, 16px);
-  width: min(1340px, 100%);
+  gap: clamp(4px, 1vw, 18px);
+  width: min(1480px, 100%);
   margin: 0 auto;
 }
 
@@ -1121,8 +1121,8 @@ h3 {
 /* Stage holds the perspective + the gentle float */
 .deck-stage {
   position: relative;
-  height: 300px;
-  perspective: 1000px;
+  height: 470px;
+  perspective: 1200px;
   animation: deckFloat 7s ease-in-out infinite;
 }
 
@@ -1131,11 +1131,11 @@ h3 {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 150px;
-  height: 206px;
-  margin: -103px 0 0 -75px;
+  width: 230px;
+  height: 320px;
+  margin: -160px 0 0 -115px;
   transform-style: preserve-3d;
-  transform: translateZ(-150px) rotateX(-7deg) rotateY(0deg);
+  transform: translateZ(-185px) rotateX(-7deg) rotateY(0deg);
   animation: deckSpin 14s linear infinite;
 }
 
@@ -1150,20 +1150,20 @@ h3 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px 14px 18px;
-  border-radius: 22px;
+  gap: 10px;
+  padding: 22px 18px 24px;
+  border-radius: 26px;
   text-decoration: none;
   color: var(--charcoal);
   background: linear-gradient(165deg, #fffdf9 0%, #f4ede2 100%);
-  border: 5px solid var(--charcoal);
+  border: 6px solid var(--charcoal);
   box-shadow:
     0 22px 38px -16px rgba(0, 0, 0, 0.55),
     0 6px 14px -8px rgba(0, 0, 0, 0.4),
     inset 0 0 0 1px rgba(201, 168, 106, 0.3),
     inset 0 0 22px rgba(34, 34, 34, 0.06);
   backface-visibility: hidden;
-  transform: rotateY(calc(var(--i) * 72deg)) translateZ(150px);
+  transform: rotateY(calc(var(--i) * 72deg)) translateZ(185px);
   transition: box-shadow 0.4s ease;
 }
 
@@ -1175,7 +1175,7 @@ h3 {
 }
 
 .deck-card__tag {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--gold);
@@ -1187,33 +1187,33 @@ h3 {
   display: grid;
   place-items: center;
   width: 100%;
-  border-radius: 14px;
+  border-radius: 16px;
   background: radial-gradient(circle at 50% 38%, rgba(34, 34, 34, 0.05), transparent 70%);
 }
 
 .deck-card__img img {
-  width: 78%;
-  max-height: 130px;
+  width: 80%;
+  max-height: 200px;
   object-fit: contain;
-  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.3));
 }
 
 .deck-card__name {
   font-family: var(--serif);
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 .deck-card__price {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
   color: #80683d;
 }
 
 @keyframes deckSpin {
-  from { transform: translateZ(-150px) rotateX(-7deg) rotateY(0deg); }
-  to   { transform: translateZ(-150px) rotateX(-7deg) rotateY(360deg); }
+  from { transform: translateZ(-185px) rotateX(-7deg) rotateY(0deg); }
+  to   { transform: translateZ(-185px) rotateX(-7deg) rotateY(360deg); }
 }
 
 @keyframes deckFloat {
