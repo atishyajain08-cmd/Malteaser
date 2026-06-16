@@ -160,6 +160,7 @@
         show(form, "Your details have been saved.", "success");
       }
     } catch (error) {
+      console.error(`[Malteaser auth] "${action}" failed:`, error?.message || error);
       show(form, friendlyError(error), "error");
     } finally {
       setBusy(form, false);
