@@ -4336,15 +4336,10 @@ blockquote cite {
   font-weight: 700;
   margin-right: 4px;
 }
-.order-receipt .order-shipping {
-  border-top-color: rgba(248, 244, 238, 0.2);
+.pincode-status {
+  font-size: 12px;
+  margin-top: 4px;
+  color: rgba(34, 34, 34, 0.6);
 }
-.order-receipt .order-shipping .eyebrow,
-.order-receipt .order-shipping__name,
-.order-receipt .order-shipping__address {
-  color: var(--ivory);
-}
-.order-receipt .order-shipping__contact,
-.order-receipt .order-shipping__notes {
-  color: rgba(248, 244, 238, 0.75);
-}
+.pincode-status[data-state="ok"] { color: #2f8a4c; }
+.pincode-status[data-state="err"] { color: #c1432d; }

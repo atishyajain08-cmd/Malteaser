@@ -924,6 +924,57 @@
     renderArrivalProducts();
   });
 
+  // PIN-code → city + state autofill using the free postalpincode.in API.
+  // Only fills empty fields so the user can always override.
+  const pincodeInput = document.querySelector('[data-checkout-form] [name="pincode"]');
+  if (pincodeInput) {
+    let status = pincodeInput.parentElement.querySelector(".pincode-status");
+    if (!status) {
+      status = document.createElement("small");
+      status.className = "pincode-status";
+      pincodeInput.parentElement.appendChild(status);
+    }
+    let lastPin = "";
+    const lookupPin = async () => {
+      const pin = String(pincodeInput.value || "").trim();
+      if (!/^[1-9][0-9]{5}$/.test(pin) || pin === lastPin) return;
+      lastPin = pin;
+      status.textContent = "Looking up PIN...";
+      status.removeAttribute("data-state");
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+        const data = await res.json();
+        const post = data?.[0]?.PostOffice?.[0];
+        if (!post || data?.[0]?.Status !== "Success") {
+          status.textContent = "We could not find this PIN code. Please enter city and state manually.";
+          status.setAttribute("data-state", "err");
+          return;
+        }
+        const form = pincodeInput.form;
+        const cityInput = form?.elements.namedItem("city");
+        const stateSelect = form?.elements.namedItem("state");
+        const city = post.District || post.Block || "";
+        const stateName = String(post.State || "").trim();
+        if (cityInput && !cityInput.value.trim() && city) cityInput.value = city;
+        if (stateSelect && !stateSelect.value && stateName) {
+          const target = stateName.toLowerCase();
+          const match = Array.from(stateSelect.options)
+            .find((o) => (o.value || o.text).toLowerCase() === target);
+          if (match) stateSelect.value = match.value || match.text;
+        }
+        status.textContent = `${city}, ${stateName}`;
+        status.setAttribute("data-state", "ok");
+      } catch {
+        status.textContent = "PIN lookup failed. Please enter city and state manually.";
+        status.setAttribute("data-state", "err");
+      }
+    };
+    pincodeInput.addEventListener("change", lookupPin);
+    pincodeInput.addEventListener("input", () => {
+      if (pincodeInput.value.replace(/\D/g, "").length === 6) lookupPin();
+    });
+  }
+
   document.querySelector("[data-checkout-form]")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const form = event.currentTarget;
