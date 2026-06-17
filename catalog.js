@@ -459,6 +459,19 @@
   }
 
   document.addEventListener("click", (event) => {
+    const cancelOrderButton = event.target.closest("[data-order-cancel]");
+    if (cancelOrderButton) {
+      event.preventDefault();
+      handleCancelOrder(cancelOrderButton.dataset.orderCancel);
+      return;
+    }
+    const exchangeOrderButton = event.target.closest("[data-order-exchange]");
+    if (exchangeOrderButton) {
+      event.preventDefault();
+      handleExchangeOrder(exchangeOrderButton.dataset.orderExchange);
+      return;
+    }
+
     const cartButton = event.target.closest("[data-cart-item]");
     const wishlistButton = event.target.closest("[data-wishlist-item]");
     const removeCartButton = event.target.closest("[data-remove-cart]");
@@ -723,6 +736,115 @@
     return order;
   }
 
+  const CANCEL_WINDOW_MS   = 12 * 60 * 60 * 1000;       // 12 hours
+  const EXCHANGE_WINDOW_MS =  7 * 24 * 60 * 60 * 1000;  // 7 days
+
+  function canCancelOrder(order) {
+    if (!order) return false;
+    const status = String(order.status || "").toLowerCase();
+    if (status !== "placed") return false;
+    const placed = Date.parse(order.placed_at);
+    if (!placed) return false;
+    return (Date.now() - placed) < CANCEL_WINDOW_MS;
+  }
+
+  function canExchangeOrder(order) {
+    if (!order) return false;
+    const status = String(order.status || "").toLowerCase();
+    if (status !== "delivered") return false;
+    const delivered = Date.parse(order.delivered_at || "");
+    if (!delivered) return false;
+    return (Date.now() - delivered) < EXCHANGE_WINDOW_MS;
+  }
+
+  function timeLeftLabel(deadlineMs) {
+    const remaining = deadlineMs - Date.now();
+    if (remaining <= 0) return "";
+    const hours = Math.floor(remaining / (60 * 60 * 1000));
+    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+    const days = Math.floor(hours / 24);
+    if (days >= 1) return `${days} day${days === 1 ? "" : "s"} left`;
+    if (hours >= 1) return `${hours} hour${hours === 1 ? "" : "s"} ${minutes ? minutes + "m " : ""}left`;
+    return `${minutes} minute${minutes === 1 ? "" : "s"} left`;
+  }
+
+  function renderOrderActions(order) {
+    if (!order) return "";
+    const cancel = canCancelOrder(order);
+    const exchange = canExchangeOrder(order);
+    if (!cancel && !exchange) return "";
+    const buttons = [];
+    if (cancel) {
+      const deadline = Date.parse(order.placed_at) + CANCEL_WINDOW_MS;
+      buttons.push(`
+        <button class="order-action order-action--cancel" type="button"
+                data-order-cancel="${escapeHtml(order.id)}">
+          Cancel order
+          <small>${escapeHtml(timeLeftLabel(deadline))}</small>
+        </button>`);
+    }
+    if (exchange) {
+      const deadline = Date.parse(order.delivered_at) + EXCHANGE_WINDOW_MS;
+      buttons.push(`
+        <button class="order-action order-action--exchange" type="button"
+                data-order-exchange="${escapeHtml(order.id)}">
+          Request exchange
+          <small>${escapeHtml(timeLeftLabel(deadline))}</small>
+        </button>`);
+    }
+    return `<div class="order-entry__actions">${buttons.join("")}</div>`;
+  }
+
+  function updateOrderStatus(orderId, patch) {
+    const orders = readOrders();
+    const idx = orders.findIndex((o) => o.id === orderId);
+    if (idx === -1) return null;
+    orders[idx] = { ...orders[idx], ...patch };
+    localStorage.setItem(ordersKey(), JSON.stringify(orders));
+    return orders[idx];
+  }
+
+  function handleCancelOrder(orderId) {
+    const orders = readOrders();
+    const order = orders.find((o) => o.id === orderId);
+    if (!canCancelOrder(order)) {
+      alert("This order can no longer be cancelled. The 12-hour cancellation window has closed.");
+      renderOrderHistory();
+      renderOrderConfirmation();
+      return;
+    }
+    if (!confirm(`Cancel order ${order.id}? This cannot be undone.`)) return;
+    updateOrderStatus(orderId, {
+      status: "Cancelled",
+      cancelled_at: new Date().toISOString()
+    });
+    renderOrderHistory();
+    renderOrderConfirmation();
+  }
+
+  function handleExchangeOrder(orderId) {
+    const orders = readOrders();
+    const order = orders.find((o) => o.id === orderId);
+    if (!canExchangeOrder(order)) {
+      alert("This order is no longer eligible for exchange. Exchanges can be requested within 7 days of delivery.");
+      renderOrderHistory();
+      return;
+    }
+    const reason = prompt(`Exchange request for ${order.id}. Tell us briefly what you'd like (size change, defective item, wrong item, etc.):`, "");
+    if (reason === null) return;
+    if (!reason.trim()) {
+      alert("Please add a short reason so our team can process the exchange.");
+      return;
+    }
+    updateOrderStatus(orderId, {
+      status: "Exchange Requested",
+      exchange_requested_at: new Date().toISOString(),
+      exchange_reason: reason.trim()
+    });
+    alert("Exchange requested. Our team will reach out on your registered phone within 24 hours.");
+    renderOrderHistory();
+  }
+
   function renderOrderHistory() {
     const root = document.querySelector("[data-order-history]");
     if (!root) return;
@@ -757,6 +879,9 @@
           <strong>${formatPrice(order.total)}</strong>
         </footer>
         ${renderShippingBlock(order.shipping)}
+        ${order.cancelled_at ? `<p class="order-entry__note">Cancelled on ${new Date(order.cancelled_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>` : ""}
+        ${order.exchange_requested_at ? `<p class="order-entry__note">Exchange requested on ${new Date(order.exchange_requested_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}${order.exchange_reason ? ` &middot; "${escapeHtml(order.exchange_reason)}"` : ""}</p>` : ""}
+        ${renderOrderActions(order)}
       </article>
     `).join("");
   }
@@ -851,7 +976,8 @@
         `).join("")}
       </ul>
       <div class="order-receipt__total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
-      ${renderShippingBlock(order.shipping)}`;
+      ${renderShippingBlock(order.shipping)}
+      ${renderOrderActions(order)}`;
   }
 
   window.MalteaserCatalog = {
