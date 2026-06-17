@@ -205,13 +205,14 @@
       const button = event.currentTarget;
       button.disabled = true;
       button.textContent = "Signing out...";
-      // Wipe the outgoing user's cart/wishlist/coupon/orders from localStorage
-      // before the session ends, so nothing lingers on a shared machine.
+      // Clear the outgoing user's ephemeral session state (cart/wishlist/coupon).
+      // Orders are NOT wiped — they are a historical record and must persist so
+      // the customer can see their order history when they sign in again.
       try {
         const { data: sess } = client ? await client.auth.getSession() : { data: { session: null } };
         const uid = sess?.session?.user?.id;
         if (uid) {
-          ["cart", "wishlist", "coupon", "orders"]
+          ["cart", "wishlist", "coupon"]
             .forEach((name) => localStorage.removeItem(`malteaser_${name}_${uid}`));
         }
       } catch {}
