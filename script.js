@@ -36,6 +36,76 @@ window.addEventListener("malteaser:catalog-ready", hideBrandLoader);
 window.setTimeout(hideBrandLoader, 4500);
 
 const header = document.querySelector(".site-header");
+
+// Mobile / tablet navigation: the desktop nav is hidden below 1020px, so build
+// a hamburger + slide-in drawer that exposes the same links on every page.
+function setupMobileNav() {
+  const siteHeader = document.querySelector(".site-header");
+  if (!siteHeader || document.querySelector(".nav-toggle")) return;
+  const mainNav = siteHeader.querySelector(".main-nav");
+  const actions = siteHeader.querySelector(".header-actions");
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "nav-toggle";
+  toggle.setAttribute("aria-label", "Open menu");
+  toggle.setAttribute("aria-expanded", "false");
+  toggle.setAttribute("aria-controls", "mobile-drawer");
+  toggle.innerHTML = "<span></span><span></span><span></span>";
+  (actions || siteHeader).appendChild(toggle);
+
+  const navLinks = mainNav
+    ? [...mainNav.querySelectorAll("a")]
+        .map((a) => `<a href="${a.getAttribute("href")}">${a.textContent.trim()}</a>`)
+        .join("")
+    : "";
+  const actionMap = [
+    ["search.html", "Search"],
+    ["wishlist.html", "Wishlist"],
+    ["login.html", "Account"],
+    ["cart.html", "Cart"]
+  ];
+  const actionLinks = actionMap
+    .filter(([href]) => actions?.querySelector(`a[href="${href}"]`))
+    .map(([href, label]) => `<a href="${href}">${label}</a>`)
+    .join("");
+
+  const drawer = document.createElement("div");
+  drawer.className = "mobile-drawer";
+  drawer.id = "mobile-drawer";
+  drawer.setAttribute("aria-hidden", "true");
+  drawer.innerHTML = `
+    <div class="mobile-drawer__backdrop"></div>
+    <aside class="mobile-drawer__panel" role="dialog" aria-label="Menu" aria-modal="true">
+      <button type="button" class="mobile-drawer__close" aria-label="Close menu">&times;</button>
+      <nav class="mobile-drawer__nav" aria-label="Mobile navigation">${navLinks}</nav>
+      <div class="mobile-drawer__actions">${actionLinks}</div>
+    </aside>`;
+  document.body.appendChild(drawer);
+
+  const open = () => {
+    drawer.classList.add("is-open");
+    document.body.classList.add("drawer-open");
+    toggle.setAttribute("aria-expanded", "true");
+    drawer.setAttribute("aria-hidden", "false");
+  };
+  const close = () => {
+    drawer.classList.remove("is-open");
+    document.body.classList.remove("drawer-open");
+    toggle.setAttribute("aria-expanded", "false");
+    drawer.setAttribute("aria-hidden", "true");
+  };
+
+  toggle.addEventListener("click", () => (drawer.classList.contains("is-open") ? close() : open()));
+  drawer.querySelector(".mobile-drawer__close").addEventListener("click", close);
+  drawer.querySelector(".mobile-drawer__backdrop").addEventListener("click", close);
+  drawer.querySelectorAll("a").forEach((a) => a.addEventListener("click", close));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") close();
+  });
+}
+setupMobileNav();
+
 const revealItems = document.querySelectorAll("[data-reveal]");
 const gatewayCards = document.querySelectorAll(".gateway-card");
 const ferrisStage = document.querySelector("[data-ferris-stage]");
