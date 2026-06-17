@@ -756,6 +756,7 @@
           <span>Total</span>
           <strong>${formatPrice(order.total)}</strong>
         </footer>
+        ${renderShippingBlock(order.shipping)}
       </article>
     `).join("");
   }
@@ -796,6 +797,34 @@
     if (placeBtn) placeBtn.disabled = cart.length === 0;
   }
 
+  function renderShippingBlock(shipping) {
+    if (!shipping || typeof shipping !== "object") return "";
+    const name = shipping.full_name || "";
+    const phone = shipping.phone || "";
+    const email = shipping.email || "";
+    const line1 = shipping.address_line1 || shipping.address || "";
+    const line2 = shipping.address_line2 || "";
+    const city = shipping.city || "";
+    const state = shipping.state || "";
+    const pincode = shipping.pincode || "";
+    const country = shipping.country || "India";
+    const notes = shipping.delivery_notes || "";
+    const hasAddress = line1 || city || state || pincode;
+    if (!name && !phone && !hasAddress) return "";
+    const addressLines = [line1, line2, [city, state, pincode].filter(Boolean).join(", "), country]
+      .filter(Boolean)
+      .map((line) => `<div>${escapeHtml(line)}</div>`).join("");
+    return `
+      <section class="order-shipping">
+        <p class="eyebrow">Shipping to</p>
+        ${name ? `<p class="order-shipping__name"><strong>${escapeHtml(name)}</strong></p>` : ""}
+        <address class="order-shipping__address">${addressLines}</address>
+        ${phone ? `<p class="order-shipping__contact"><span>Phone:</span> ${escapeHtml(phone)}</p>` : ""}
+        ${email ? `<p class="order-shipping__contact"><span>Email:</span> ${escapeHtml(email)}</p>` : ""}
+        ${notes ? `<p class="order-shipping__notes"><span>Courier notes:</span> ${escapeHtml(notes)}</p>` : ""}
+      </section>`;
+  }
+
   function renderOrderConfirmation() {
     const root = document.querySelector("[data-order-confirmation]");
     if (!root) return;
@@ -821,7 +850,8 @@
           </li>
         `).join("")}
       </ul>
-      <div class="order-receipt__total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>`;
+      <div class="order-receipt__total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
+      ${renderShippingBlock(order.shipping)}`;
   }
 
   window.MalteaserCatalog = {

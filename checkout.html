@@ -7,11 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=orders-1">
+  <link rel="stylesheet" href="styles.css?v=address-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=orders-1"></script>
+  <script defer src="catalog.js?v=address-1"></script>
   <script defer src="script.js?v=mobilenav-1"></script>
 </head>
 <body class="inner-page">
@@ -26,22 +26,70 @@
       <section class="page-panel" data-reveal>
         <p class="eyebrow">Premium checkout</p>
         <h1>Complete your order</h1>
-        <form class="form-grid" data-checkout-form>
-          <label>Email address
-            <input type="email" name="email" autocomplete="email" required>
-          </label>
-          <label>Full name
-            <input type="text" name="full_name" autocomplete="name" required>
-          </label>
-          <label>Shipping address
-            <input type="text" name="address" autocomplete="street-address" required>
-          </label>
-          <label>City
-            <input type="text" name="city" autocomplete="address-level2" required>
-          </label>
-          <label>Phone number
-            <input type="tel" name="phone" autocomplete="tel" required>
-          </label>
+        <form class="form-grid checkout-form" data-checkout-form>
+          <fieldset class="checkout-fieldset">
+            <legend>Contact details</legend>
+            <label>Full name
+              <input type="text" name="full_name" autocomplete="name" required>
+            </label>
+            <label>Phone number
+              <input type="tel" name="phone" autocomplete="tel" required
+                     pattern="[6-9][0-9]{9}" inputmode="numeric" maxlength="10"
+                     placeholder="10-digit mobile" title="Enter a 10-digit Indian mobile number starting with 6, 7, 8, or 9">
+            </label>
+            <label>Email address
+              <input type="email" name="email" autocomplete="email" required>
+            </label>
+          </fieldset>
+
+          <fieldset class="checkout-fieldset">
+            <legend>Shipping address</legend>
+            <label>House / flat number, building, street
+              <input type="text" name="address_line1" autocomplete="address-line1" required
+                     placeholder="e.g. Flat 304, Sunshine Apartments, MG Road">
+            </label>
+            <label>Apartment, landmark, area <span class="optional">(optional)</span>
+              <input type="text" name="address_line2" autocomplete="address-line2"
+                     placeholder="e.g. Near Forum Mall, Koramangala">
+            </label>
+            <label>City
+              <input type="text" name="city" autocomplete="address-level2" required>
+            </label>
+            <label>State
+              <select name="state" autocomplete="address-level1" required>
+                <option value="">Select state</option>
+                <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+                <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+                <option>Goa</option><option>Gujarat</option><option>Haryana</option>
+                <option>Himachal Pradesh</option><option>Jharkhand</option>
+                <option>Karnataka</option><option>Kerala</option><option>Madhya Pradesh</option>
+                <option>Maharashtra</option><option>Manipur</option><option>Meghalaya</option>
+                <option>Mizoram</option><option>Nagaland</option><option>Odisha</option>
+                <option>Punjab</option><option>Rajasthan</option><option>Sikkim</option>
+                <option>Tamil Nadu</option><option>Telangana</option><option>Tripura</option>
+                <option>Uttar Pradesh</option><option>Uttarakhand</option><option>West Bengal</option>
+                <option>Andaman and Nicobar Islands</option><option>Chandigarh</option>
+                <option>Dadra and Nagar Haveli and Daman and Diu</option><option>Delhi</option>
+                <option>Jammu and Kashmir</option><option>Ladakh</option>
+                <option>Lakshadweep</option><option>Puducherry</option>
+              </select>
+            </label>
+            <label>PIN code
+              <input type="text" name="pincode" autocomplete="postal-code" required
+                     pattern="[1-9][0-9]{5}" inputmode="numeric" maxlength="6"
+                     placeholder="6-digit PIN" title="Enter a 6-digit Indian PIN code">
+            </label>
+            <input type="hidden" name="country" value="India">
+          </fieldset>
+
+          <fieldset class="checkout-fieldset">
+            <legend>Delivery preferences <span class="optional">(optional)</span></legend>
+            <label>Notes for our courier
+              <textarea name="delivery_notes" rows="2"
+                        placeholder="e.g. Leave with security, call before delivery, ring twice"></textarea>
+            </label>
+          </fieldset>
+
           <button type="submit" class="button button--dark magnetic" data-place-order>
             <i data-lucide="lock"></i> Place Order
           </button>

@@ -4270,3 +4270,81 @@ blockquote cite {
 
 .form-message[data-type="error"] { color: #c1432d; }
 .form-message[data-type="success"] { color: #2f8a4c; }
+
+.checkout-fieldset {
+  border: 1px solid rgba(34, 34, 34, 0.12);
+  border-radius: 6px;
+  padding: 18px 20px 8px;
+  margin: 0 0 14px;
+  display: grid;
+  gap: 14px;
+}
+.checkout-fieldset legend {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--charcoal);
+  padding: 0 8px;
+}
+.checkout-fieldset .optional {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: rgba(34, 34, 34, 0.55);
+  margin-left: 4px;
+}
+.checkout-fieldset textarea {
+  width: 100%;
+  min-height: 64px;
+  border: 1px solid rgba(34, 34, 34, 0.16);
+  background: var(--white);
+  color: var(--charcoal);
+  padding: 12px 16px;
+  font-family: inherit;
+  resize: vertical;
+}
+.checkout-fieldset select {
+  min-height: 52px;
+  border: 1px solid rgba(34, 34, 34, 0.16);
+  background: var(--white);
+  color: var(--charcoal);
+  padding: 0 16px;
+}
+
+.order-shipping {
+  border-top: 1px solid rgba(34, 34, 34, 0.1);
+  margin-top: 16px;
+  padding-top: 16px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.order-shipping .eyebrow { margin-bottom: 8px; }
+.order-shipping__name { margin: 4px 0; font-size: 14px; }
+.order-shipping__address {
+  font-style: normal;
+  color: var(--charcoal);
+  margin-bottom: 6px;
+}
+.order-shipping__contact,
+.order-shipping__notes {
+  margin: 2px 0;
+  color: rgba(34, 34, 34, 0.75);
+}
+.order-shipping__contact span,
+.order-shipping__notes span {
+  font-weight: 700;
+  margin-right: 4px;
+}
+.order-receipt .order-shipping {
+  border-top-color: rgba(248, 244, 238, 0.2);
+}
+.order-receipt .order-shipping .eyebrow,
+.order-receipt .order-shipping__name,
+.order-receipt .order-shipping__address {
+  color: var(--ivory);
+}
+.order-receipt .order-shipping__contact,
+.order-receipt .order-shipping__notes {
+  color: rgba(248, 244, 238, 0.75);
+}
