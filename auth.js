@@ -205,7 +205,18 @@
       const button = event.currentTarget;
       button.disabled = true;
       button.textContent = "Signing out...";
+      // Wipe the outgoing user's cart/wishlist/coupon/orders from localStorage
+      // before the session ends, so nothing lingers on a shared machine.
+      try {
+        const { data: sess } = client ? await client.auth.getSession() : { data: { session: null } };
+        const uid = sess?.session?.user?.id;
+        if (uid) {
+          ["cart", "wishlist", "coupon", "orders"]
+            .forEach((name) => localStorage.removeItem(`malteaser_${name}_${uid}`));
+        }
+      } catch {}
       if (client) await client.auth.signOut();
+      window.dispatchEvent(new CustomEvent("malteaser:user-changed"));
       redirect("login.html");
     });
 
@@ -239,6 +250,13 @@
     revealProtectedContent();
 
     client.auth.onAuthStateChange((event, nextSession) => {
+      // Tell catalog.js to re-resolve the current user and re-render
+      // cart/wishlist/orders against the new identity. Without this,
+      // a sign-in/sign-up would keep showing the previous bucket until
+      // the next page navigation.
+      window.dispatchEvent(new CustomEvent("malteaser:user-changed", {
+        detail: { event, userId: nextSession?.user?.id || null }
+      }));
       if (event === "SIGNED_OUT" && protectedPages.has(page)) {
         redirect("login.html", `?next=${encodeURIComponent(page)}`);
       }

@@ -20,12 +20,33 @@
     }
   }) : null;
   const localKey = "malteaser_catalog_items";
-  const cartKey = "malteaser_cart";
-  const wishlistKey = "malteaser_wishlist";
   const catalogUpdatedKey = "malteaser_catalog_updated_at";
   const arrivalFilterKey = "malteaser_arrival_filter";
-  const couponKey = "malteaser_coupon";
-  const ordersKey = "malteaser_orders";
+
+  // One-time purge of legacy GLOBAL keys (pre-fix, 2026-06-17).
+  // These leaked one account's cart/wishlist/coupon/orders to every other
+  // account on the same browser. Per-user keys (with a UID suffix) are kept.
+  ["malteaser_cart", "malteaser_wishlist", "malteaser_coupon", "malteaser_orders"]
+    .forEach((k) => { try { localStorage.removeItem(k); } catch {} });
+
+  // User-scoped key helpers. The current customer's UID is read from the
+  // auth.js Supabase session ("malteaser-customer"), which is where customer
+  // logins actually persist. Guests get a shared "guest" bucket.
+  const customerAuthKey = "malteaser-customer";
+  function readCustomerUserId() {
+    try {
+      const raw = localStorage.getItem(customerAuthKey);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      return obj?.currentSession?.user?.id || obj?.user?.id || null;
+    } catch { return null; }
+  }
+  let cachedUserId = readCustomerUserId();
+  function keyFor(name) { return `malteaser_${name}_${cachedUserId || "guest"}`; }
+  const cartKey     = () => keyFor("cart");
+  const wishlistKey = () => keyFor("wishlist");
+  const couponKey   = () => keyFor("coupon");
+  const ordersKey   = () => keyFor("orders");
   let catalogItems = [];
   let activeArrivalFilter = sessionStorage.getItem(arrivalFilterKey) || "all";
   let catalogSearch = "";
@@ -88,8 +109,8 @@
   }
 
   function updateHeaderCounts() {
-    const cartCount = readStored(cartKey).reduce((total, item) => total + Number(item.quantity || 1), 0);
-    const wishlistCount = readStored(wishlistKey).length;
+    const cartCount = readStored(cartKey()).reduce((total, item) => total + Number(item.quantity || 1), 0);
+    const wishlistCount = readStored(wishlistKey()).length;
     document.querySelectorAll(".cart-button span").forEach((count) => {
       count.textContent = cartCount;
       count.hidden = cartCount === 0;
@@ -101,7 +122,7 @@
   }
 
   function addToCart(item, quantity = 1) {
-    const cart = readStored(cartKey);
+    const cart = readStored(cartKey());
     const normalized = normalizedItem(item);
     const existing = cart.find((entry) =>
       String(entry.id) === normalized.id && String(entry.size || "") === normalized.size
@@ -114,17 +135,17 @@
     }
     if (existing) existing.quantity = nextQuantity;
     else cart.push({ ...normalized, quantity: nextQuantity });
-    writeStored(cartKey, cart);
+    writeStored(cartKey(), cart);
     showCartConfirmation(normalized);
     return true;
   }
 
   function toggleWishlist(item) {
-    const wishlist = readStored(wishlistKey);
+    const wishlist = readStored(wishlistKey());
     const index = wishlist.findIndex((entry) => String(entry.id) === String(item.id));
     if (index >= 0) wishlist.splice(index, 1);
     else wishlist.push(normalizedItem(item));
-    writeStored(wishlistKey, wishlist);
+    writeStored(wishlistKey(), wishlist);
     return index < 0;
   }
 
@@ -169,7 +190,7 @@
   }
 
   function productCard(item) {
-    const saved = isSaved(wishlistKey, item.id);
+    const saved = isSaved(wishlistKey(), item.id);
     return `
       <article class="product-card is-visible">
         <button class="wishlist${saved ? " is-active" : ""}" type="button" data-wishlist-item="${itemData(item)}" aria-label="${saved ? "Remove" : "Add"} ${escapeHtml(item.title)} ${saved ? "from" : "to"} wishlist"><i data-lucide="heart"></i></button>
@@ -334,7 +355,7 @@
     const root = document.querySelector("[data-cart-items]");
     const totalRoot = document.querySelector("[data-cart-total]");
     if (!root) return;
-    const cart = readStored(cartKey);
+    const cart = readStored(cartKey());
     root.innerHTML = cart.map((item) => {
       const quantity = Number(item.quantity || 1);
       const available = item.inventory?.[item.size];
@@ -355,7 +376,7 @@
       </article>`;
     }).join("") || '<div class="empty-state"><h2>Your cart is empty.</h2><a class="button button--dark" href="shop.html">Explore Products</a></div>';
     const subtotal = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
-    const couponApplied = localStorage.getItem(couponKey) === "MALTEASER10";
+    const couponApplied = localStorage.getItem(couponKey()) === "MALTEASER10";
     const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
     const total = Math.max(0, subtotal - discount);
     document.querySelectorAll("[data-cart-subtotal]").forEach((element) => { element.textContent = formatPrice(subtotal); });
@@ -368,7 +389,7 @@
   function renderWishlist() {
     const root = document.querySelector("[data-wishlist-items]");
     if (!root) return;
-    const wishlist = readStored(wishlistKey);
+    const wishlist = readStored(wishlistKey());
     root.innerHTML = wishlist.map(productCard).join("") || '<div class="empty-state"><h2>Your wishlist is empty.</h2><a class="button button--dark" href="shop.html">Discover Products</a></div>';
   }
 
@@ -459,14 +480,14 @@
 
     if (cartQuantityButton) {
       const [itemId, itemSize = ""] = cartQuantityButton.dataset.cartKey.split("::");
-      const cart = readStored(cartKey);
+      const cart = readStored(cartKey());
       const item = cart.find((entry) => String(entry.id) === itemId && String(entry.size || "") === itemSize);
       if (item) {
         const next = Number(item.quantity || 1) + Number(cartQuantityButton.dataset.cartQuantity);
         const available = item.inventory?.[item.size];
         if (next >= 1 && (!Number.isFinite(available) || next <= available)) {
           item.quantity = next;
-          writeStored(cartKey, cart);
+          writeStored(cartKey(), cart);
           renderCart();
         } else if (Number.isFinite(available) && next > available) {
           showStockNotice(item, available);
@@ -521,7 +542,7 @@
     if (removeCartButton) {
       event.preventDefault();
       const [removeId, removeSize = ""] = removeCartButton.dataset.removeCart.split("::");
-      writeStored(cartKey, readStored(cartKey).filter((item) =>
+      writeStored(cartKey(), readStored(cartKey()).filter((item) =>
         !(String(item.id) === removeId && String(item.size || "") === removeSize)
       ));
       renderCart();
@@ -653,7 +674,7 @@
 
   function readOrders() {
     try {
-      return JSON.parse(localStorage.getItem(ordersKey) || "[]");
+      return JSON.parse(localStorage.getItem(ordersKey()) || "[]");
     } catch {
       return [];
     }
@@ -667,12 +688,12 @@
   }
 
   function placeOrderFromCart(shipping = {}) {
-    const cart = readStored(cartKey);
+    const cart = readStored(cartKey());
     if (!cart.length) return null;
     const subtotal = cart.reduce(
       (sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0
     );
-    const couponApplied = localStorage.getItem(couponKey) === "MALTEASER10";
+    const couponApplied = localStorage.getItem(couponKey()) === "MALTEASER10";
     const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
     const total = Math.max(0, subtotal - discount);
     const order = {
@@ -695,9 +716,9 @@
     };
     const orders = readOrders();
     orders.unshift(order);
-    localStorage.setItem(ordersKey, JSON.stringify(orders));
-    localStorage.removeItem(cartKey);
-    localStorage.removeItem(couponKey);
+    localStorage.setItem(ordersKey(), JSON.stringify(orders));
+    localStorage.removeItem(cartKey());
+    localStorage.removeItem(couponKey());
     updateHeaderCounts();
     return order;
   }
@@ -745,11 +766,11 @@
     const disEl = document.querySelector("[data-checkout-discount]");
     const itemsEl = document.querySelector("[data-checkout-items]");
     if (!totalEl && !itemsEl) return;
-    const cart = readStored(cartKey);
+    const cart = readStored(cartKey());
     const subtotal = cart.reduce(
       (sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0
     );
-    const couponApplied = localStorage.getItem(couponKey) === "MALTEASER10";
+    const couponApplied = localStorage.getItem(couponKey()) === "MALTEASER10";
     const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
     const total = Math.max(0, subtotal - discount);
     if (subEl) subEl.textContent = formatPrice(subtotal);
@@ -833,13 +854,31 @@
     renderCatalog();
   });
 
+  function reflectCurrentUser() {
+    const previous = cachedUserId;
+    cachedUserId = readCustomerUserId();
+    if (cachedUserId !== previous) {
+      updateHeaderCounts();
+      renderCart();
+      renderWishlist();
+      renderOrderHistory();
+      renderCheckoutSummary();
+    }
+  }
+
   window.addEventListener("storage", (event) => {
-    if (event.key === cartKey) {
+    if (event.key === customerAuthKey) {
+      reflectCurrentUser();
+      return;
+    }
+    if (event.key === cartKey()) {
       updateHeaderCounts();
       renderCart();
     }
     if (event.key === catalogUpdatedKey) renderCatalog();
   });
+
+  window.addEventListener("malteaser:user-changed", reflectCurrentUser);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") renderCatalog();
@@ -877,11 +916,11 @@
     const code = String(new FormData(form).get("coupon") || "").trim().toUpperCase();
     const message = form.querySelector("[data-coupon-message]");
     if (code === "MALTEASER10") {
-      localStorage.setItem(couponKey, code);
+      localStorage.setItem(couponKey(), code);
       message.textContent = "10% private edit discount applied.";
       message.dataset.type = "success";
     } else {
-      localStorage.removeItem(couponKey);
+      localStorage.removeItem(couponKey());
       message.textContent = "This coupon is not available.";
       message.dataset.type = "error";
     }
