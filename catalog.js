@@ -768,6 +768,14 @@
     return `${minutes} minute${minutes === 1 ? "" : "s"} left`;
   }
 
+  function orderHasManageActions(order) {
+    return canCancelOrder(order) || canExchangeOrder(order);
+  }
+
+  function manageAnchorId(orderId) {
+    return `manage-${String(orderId || "").replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  }
+
   function renderOrderActions(order) {
     if (!order) return "";
     const cancel = canCancelOrder(order);
@@ -810,6 +818,7 @@
     if (!canCancelOrder(order)) {
       alert("This order can no longer be cancelled. The 12-hour cancellation window has closed.");
       renderOrderHistory();
+      renderOrderManagement();
       renderOrderConfirmation();
       return;
     }
@@ -819,6 +828,7 @@
       cancelled_at: new Date().toISOString()
     });
     renderOrderHistory();
+    renderOrderManagement();
     renderOrderConfirmation();
   }
 
@@ -828,6 +838,7 @@
     if (!canExchangeOrder(order)) {
       alert("This order is no longer eligible for exchange. Exchanges can be requested within 7 days of delivery.");
       renderOrderHistory();
+      renderOrderManagement();
       return;
     }
     const reason = prompt(`Exchange request for ${order.id}. Tell us briefly what you'd like (size change, defective item, wrong item, etc.):`, "");
@@ -843,6 +854,7 @@
     });
     alert("Exchange requested. Our team will reach out on your registered phone within 24 hours.");
     renderOrderHistory();
+    renderOrderManagement();
   }
 
   function renderOrderHistory() {
@@ -881,6 +893,36 @@
         ${renderShippingBlock(order.shipping)}
         ${order.cancelled_at ? `<p class="order-entry__note">Cancelled on ${new Date(order.cancelled_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>` : ""}
         ${order.exchange_requested_at ? `<p class="order-entry__note">Exchange requested on ${new Date(order.exchange_requested_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}${order.exchange_reason ? ` &middot; "${escapeHtml(order.exchange_reason)}"` : ""}</p>` : ""}
+        ${orderHasManageActions(order) ? `
+          <div class="order-entry__manage">
+            <a class="order-entry__manage-link" href="#${manageAnchorId(order.id)}"
+               aria-label="Manage order ${escapeHtml(order.id)}">
+              Manage <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        ` : ""}
+      </article>
+    `).join("");
+  }
+
+  function renderOrderManagement() {
+    const root = document.querySelector("[data-order-manage]");
+    if (!root) return;
+    const orders = readOrders().filter(orderHasManageActions);
+    if (!orders.length) {
+      root.innerHTML = `<p class="order-manage__empty">No actions required at the moment. You'll see options here when an order is eligible to cancel or exchange.</p>`;
+      return;
+    }
+    root.innerHTML = orders.map((order) => `
+      <article class="order-manage-entry" id="${manageAnchorId(order.id)}">
+        <header class="order-manage-entry__head">
+          <div>
+            <strong>${escapeHtml(order.id)}</strong>
+            <small>${new Date(order.placed_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</small>
+          </div>
+          <span class="order-entry__status">${escapeHtml(order.status || "Placed")}</span>
+        </header>
+        <p class="order-manage-entry__summary">${escapeHtml(order.items?.[0]?.title || "Order")}${(order.items?.length || 0) > 1 ? ` &middot; ${order.items.length} items` : ""} &middot; ${formatPrice(order.total)}</p>
         ${renderOrderActions(order)}
       </article>
     `).join("");
@@ -988,7 +1030,8 @@
     renderCatalog,
     placeOrderFromCart,
     readOrders,
-    renderOrderHistory
+    renderOrderHistory,
+    renderOrderManagement
   };
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -996,6 +1039,7 @@
     renderCart();
     renderWishlist();
     renderOrderHistory();
+    renderOrderManagement();
     renderCheckoutSummary();
     renderOrderConfirmation();
     renderCatalog();
@@ -1005,6 +1049,7 @@
     updateHeaderCounts();
     renderCart();
     renderOrderHistory();
+    renderOrderManagement();
     renderCheckoutSummary();
     renderOrderConfirmation();
     renderCatalog();
@@ -1018,6 +1063,7 @@
       renderCart();
       renderWishlist();
       renderOrderHistory();
+      renderOrderManagement();
       renderCheckoutSummary();
     }
   }

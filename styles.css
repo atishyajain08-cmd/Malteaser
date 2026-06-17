@@ -4375,10 +4375,101 @@ blockquote cite {
   text-transform: uppercase;
   opacity: 0.7;
 }
-.order-action--cancel { color: #c1432d; }
-.order-action--cancel:hover { background: #c1432d; color: var(--ivory, #f8f4ee); }
+/* Cancel button — intentionally subdued. Visible if you look for it,
+   easy to overlook if you're not. No red fill, smaller weight. */
+.order-action--cancel {
+  color: rgba(34, 34, 34, 0.55);
+  border-color: rgba(34, 34, 34, 0.18);
+  font-weight: 500;
+  font-size: 12px;
+  padding: 8px 14px;
+}
+.order-action--cancel:hover {
+  color: rgba(34, 34, 34, 0.85);
+  border-color: rgba(34, 34, 34, 0.4);
+  background: transparent;
+}
+.order-action--cancel small { opacity: 0.55; }
+
 .order-action--exchange { color: var(--charcoal, #222); }
 .order-action--exchange:hover { background: var(--charcoal, #222); color: var(--ivory, #f8f4ee); }
+
+/* "Manage →" link that sits at the bottom of an order entry in
+   the history list. Muted gold; reachable but doesn't shout. */
+.order-entry__manage {
+  margin-top: 14px;
+  text-align: right;
+}
+.order-entry__manage-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(201, 168, 106, 0.85);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 999px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.order-entry__manage-link:hover {
+  color: rgb(201, 168, 106);
+  background: rgba(201, 168, 106, 0.08);
+}
+
+/* Manage Orders section — surfaces actionable orders only. */
+.account-manage-card__intro {
+  font-size: 13px;
+  color: rgba(34, 34, 34, 0.7);
+  margin: 0 0 14px;
+}
+.order-manage {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.order-manage__empty {
+  font-size: 13px;
+  color: rgba(34, 34, 34, 0.55);
+  font-style: italic;
+  margin: 0;
+}
+.order-manage-entry {
+  padding: 16px 18px;
+  border: 1px solid rgba(34, 34, 34, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 253, 249, 0.5);
+}
+.order-manage-entry:target {
+  border-color: rgba(201, 168, 106, 0.5);
+  box-shadow: 0 0 0 2px rgba(201, 168, 106, 0.18);
+}
+.order-manage-entry__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.order-manage-entry__head strong { font-size: 14px; }
+.order-manage-entry__head small {
+  display: block;
+  font-size: 11px;
+  color: rgba(34, 34, 34, 0.55);
+  margin-top: 2px;
+}
+.order-manage-entry__summary {
+  font-size: 13px;
+  color: rgba(34, 34, 34, 0.7);
+  margin: 0 0 10px;
+}
+.order-manage-entry .order-entry__actions {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
 
 .order-entry__note {
   margin: 12px 0 0;

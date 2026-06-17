@@ -8,12 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=order-actions-1">
+  <link rel="stylesheet" href="styles.css?v=manage-orders-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
   <script defer src="auth.js?v=3"></script>
-  <script defer src="catalog.js?v=order-actions-1"></script>
+  <script defer src="catalog.js?v=manage-orders-1"></script>
   <script defer src="script.js?v=mobilenav-1"></script>
 </head>
 <body class="inner-page auth-pending">
@@ -57,6 +57,12 @@
         <span class="mini-kicker">Orders</span>
         <h3>Order history</h3>
         <div class="order-history" data-order-history></div>
+      </article>
+      <article class="page-panel account-manage-card" id="manage-orders" data-reveal>
+        <span class="mini-kicker">Support</span>
+        <h3>Manage orders</h3>
+        <p class="account-manage-card__intro">If you need to cancel a recent order or request an exchange for a delivered piece, you'll find the available options below. Eligible window: 12 hours after placing, 7 days after delivery.</p>
+        <div class="order-manage" data-order-manage></div>
       </article>
       <article class="page-panel" data-reveal><span class="mini-kicker">Wishlist</span><h3>Saved edit</h3><p>Review favourites, remove pieces, or move the final selection into your shopping bag.</p><a class="text-button" href="wishlist.html">Open Wishlist</a></article>
     </section>
