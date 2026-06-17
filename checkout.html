@@ -7,16 +7,58 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=orders-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script defer src="script.js"></script>
+  <script defer src="assets/vendor/supabase.min.js"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="catalog.js?v=orders-1"></script>
+  <script defer src="script.js?v=mobilenav-1"></script>
 </head>
 <body class="inner-page">
-  <header class="site-header is-scrolled"><a href="index.html" class="brand brand--logo" aria-label="Malteaser home"><img src="assets/malteaser-logo.png" alt=""></a><nav class="main-nav" aria-label="Primary navigation"><a href="shop.html">New Arrivals</a><a href="collections.html">Collections</a><a href="lookbook.html">Lookbook</a><a href="product.html">Product</a></nav><div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button" href="login.html" aria-label="Customer login"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div></header>
-  <main class="page-band" style="padding-top: 150px;">
+  <header class="site-header is-scrolled">
+    <a href="index.html" class="brand brand--logo" aria-label="Malteaser home"><img src="assets/malteaser-logo.png" alt=""></a>
+    <nav class="main-nav" aria-label="Primary navigation"><a href="shop.html">New Arrivals</a><a href="collections.html">Collections</a><a href="lookbook.html">Lookbook</a><a href="product.html">Product</a></nav>
+    <div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button" href="login.html" aria-label="Customer login"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div>
+  </header>
+
+  <main class="page-band checkout-page" style="padding-top: 130px;">
     <div class="split-layout">
-      <section class="page-panel" data-reveal><p class="eyebrow">Premium checkout</p><h1>Complete your order</h1><form class="form-grid"><input type="email" placeholder="Email address"><input type="text" placeholder="Full name"><input type="text" placeholder="Shipping address"><input type="text" placeholder="City"><input type="text" placeholder="Phone number"><a href="order-confirmation.html" class="button button--dark magnetic">Place Order</a></form></section>
-      <aside class="checkout-summary" data-reveal><p class="eyebrow">Total</p><h2>Rs. 6,100</h2><p>Secure checkout for your Malteaser order. Payment integration can be connected next.</p><a href="cart.html" class="text-button" style="color: var(--ivory);">Back to Cart</a></aside>
+      <section class="page-panel" data-reveal>
+        <p class="eyebrow">Premium checkout</p>
+        <h1>Complete your order</h1>
+        <form class="form-grid" data-checkout-form>
+          <label>Email address
+            <input type="email" name="email" autocomplete="email" required>
+          </label>
+          <label>Full name
+            <input type="text" name="full_name" autocomplete="name" required>
+          </label>
+          <label>Shipping address
+            <input type="text" name="address" autocomplete="street-address" required>
+          </label>
+          <label>City
+            <input type="text" name="city" autocomplete="address-level2" required>
+          </label>
+          <label>Phone number
+            <input type="tel" name="phone" autocomplete="tel" required>
+          </label>
+          <button type="submit" class="button button--dark magnetic" data-place-order>
+            <i data-lucide="lock"></i> Place Order
+          </button>
+          <p class="form-message" data-checkout-message aria-live="polite"></p>
+        </form>
+      </section>
+      <aside class="checkout-summary" data-reveal>
+        <p class="eyebrow">Order summary</p>
+        <div class="checkout-summary__items" data-checkout-items></div>
+        <dl class="checkout-summary__totals">
+          <div><dt>Subtotal</dt><dd data-checkout-subtotal>Rs. 0</dd></div>
+          <div><dt>Discount</dt><dd data-checkout-discount>Rs. 0</dd></div>
+          <div class="checkout-summary__grand"><dt>Total</dt><dd data-checkout-total>Rs. 0</dd></div>
+        </dl>
+        <p class="checkout-summary__note">Your order details and receipt will be saved to your account.</p>
+        <a href="cart.html" class="text-button" style="color: var(--ivory);">Back to Cart</a>
+      </aside>
     </div>
   </main>
 </body>

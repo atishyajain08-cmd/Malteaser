@@ -25,6 +25,7 @@
   const catalogUpdatedKey = "malteaser_catalog_updated_at";
   const arrivalFilterKey = "malteaser_arrival_filter";
   const couponKey = "malteaser_coupon";
+  const ordersKey = "malteaser_orders";
   let catalogItems = [];
   let activeArrivalFilter = sessionStorage.getItem(arrivalFilterKey) || "all";
   let catalogSearch = "";
@@ -650,24 +651,185 @@
     }
   }
 
+  function readOrders() {
+    try {
+      return JSON.parse(localStorage.getItem(ordersKey) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function createOrderId() {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return "MAL-" + crypto.randomUUID().slice(0, 8).toUpperCase();
+    }
+    return "MAL-" + Date.now().toString(36).toUpperCase();
+  }
+
+  function placeOrderFromCart(shipping = {}) {
+    const cart = readStored(cartKey);
+    if (!cart.length) return null;
+    const subtotal = cart.reduce(
+      (sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0
+    );
+    const couponApplied = localStorage.getItem(couponKey) === "MALTEASER10";
+    const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
+    const total = Math.max(0, subtotal - discount);
+    const order = {
+      id: createOrderId(),
+      placed_at: new Date().toISOString(),
+      status: "Placed",
+      items: cart.map((item) => ({
+        id: String(item.id),
+        title: item.title || "Malteaser Product",
+        price: Number(item.price || 0),
+        quantity: Number(item.quantity || 1),
+        size: item.size || "",
+        image_url: item.image_url || "assets/white-tshirt.svg"
+      })),
+      subtotal,
+      discount,
+      coupon: couponApplied ? "MALTEASER10" : null,
+      total,
+      shipping
+    };
+    const orders = readOrders();
+    orders.unshift(order);
+    localStorage.setItem(ordersKey, JSON.stringify(orders));
+    localStorage.removeItem(cartKey);
+    localStorage.removeItem(couponKey);
+    updateHeaderCounts();
+    return order;
+  }
+
+  function renderOrderHistory() {
+    const root = document.querySelector("[data-order-history]");
+    if (!root) return;
+    const orders = readOrders();
+    if (!orders.length) {
+      root.innerHTML = `<p class="order-history__empty">You have not placed any orders yet. <a class="text-button" href="shop.html">Start shopping</a></p>`;
+      return;
+    }
+    root.innerHTML = orders.map((order) => `
+      <article class="order-entry">
+        <header class="order-entry__head">
+          <div>
+            <strong>${escapeHtml(order.id)}</strong>
+            <small>${new Date(order.placed_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</small>
+          </div>
+          <span class="order-entry__status">${escapeHtml(order.status || "Placed")}</span>
+        </header>
+        <ul class="order-entry__items">
+          ${order.items.map((item) => `
+            <li>
+              <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}">
+              <div>
+                <strong>${escapeHtml(item.title)}</strong>
+                <small>${item.size ? `Size ${escapeHtml(item.size)} · ` : ""}Qty ${Number(item.quantity || 1)}</small>
+              </div>
+              <span>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</span>
+            </li>
+          `).join("")}
+        </ul>
+        <footer class="order-entry__total">
+          <span>Total</span>
+          <strong>${formatPrice(order.total)}</strong>
+        </footer>
+      </article>
+    `).join("");
+  }
+
+  function renderCheckoutSummary() {
+    const totalEl = document.querySelector("[data-checkout-total]");
+    const subEl = document.querySelector("[data-checkout-subtotal]");
+    const disEl = document.querySelector("[data-checkout-discount]");
+    const itemsEl = document.querySelector("[data-checkout-items]");
+    if (!totalEl && !itemsEl) return;
+    const cart = readStored(cartKey);
+    const subtotal = cart.reduce(
+      (sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0
+    );
+    const couponApplied = localStorage.getItem(couponKey) === "MALTEASER10";
+    const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
+    const total = Math.max(0, subtotal - discount);
+    if (subEl) subEl.textContent = formatPrice(subtotal);
+    if (disEl) disEl.textContent = discount ? `- ${formatPrice(discount)}` : formatPrice(0);
+    if (totalEl) totalEl.textContent = formatPrice(total);
+    if (itemsEl) {
+      if (!cart.length) {
+        itemsEl.innerHTML = `<p>Your cart is empty. <a class="text-button" href="shop.html">Continue shopping</a></p>`;
+      } else {
+        itemsEl.innerHTML = cart.map((item) => `
+          <div class="checkout-line">
+            <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong>
+              <small>${item.size ? `Size ${escapeHtml(item.size)} · ` : ""}Qty ${Number(item.quantity || 1)}</small>
+            </div>
+            <span>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</span>
+          </div>
+        `).join("");
+      }
+    }
+    const placeBtn = document.querySelector("[data-place-order]");
+    if (placeBtn) placeBtn.disabled = cart.length === 0;
+  }
+
+  function renderOrderConfirmation() {
+    const root = document.querySelector("[data-order-confirmation]");
+    if (!root) return;
+    const orders = readOrders();
+    const orderId = new URLSearchParams(location.search).get("orderId");
+    const order = orderId ? orders.find((o) => o.id === orderId) : orders[0];
+    if (!order) {
+      root.innerHTML = `<p>No recent order found. <a class="text-button" href="shop.html">Continue shopping</a></p>`;
+      return;
+    }
+    root.innerHTML = `
+      <p class="eyebrow">Order ${escapeHtml(order.id)}</p>
+      <p>Placed ${new Date(order.placed_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>
+      <ul class="order-receipt__items">
+        ${order.items.map((item) => `
+          <li>
+            <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong>
+              <small>${item.size ? `Size ${escapeHtml(item.size)} · ` : ""}Qty ${Number(item.quantity || 1)}</small>
+            </div>
+            <span>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</span>
+          </li>
+        `).join("")}
+      </ul>
+      <div class="order-receipt__total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>`;
+  }
+
   window.MalteaserCatalog = {
     client,
     isConfigured,
     localKey,
     loadCatalog,
-    renderCatalog
+    renderCatalog,
+    placeOrderFromCart,
+    readOrders,
+    renderOrderHistory
   };
 
   document.addEventListener("DOMContentLoaded", () => {
     updateHeaderCounts();
     renderCart();
     renderWishlist();
+    renderOrderHistory();
+    renderCheckoutSummary();
+    renderOrderConfirmation();
     renderCatalog();
   });
 
   window.addEventListener("pageshow", () => {
     updateHeaderCounts();
     renderCart();
+    renderOrderHistory();
+    renderCheckoutSummary();
+    renderOrderConfirmation();
     renderCatalog();
   });
 
@@ -691,6 +853,22 @@
   document.querySelector("[data-catalog-sort]")?.addEventListener("change", (event) => {
     catalogSort = event.target.value;
     renderArrivalProducts();
+  });
+
+  document.querySelector("[data-checkout-form]")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const shipping = Object.fromEntries(new FormData(form));
+    const order = placeOrderFromCart(shipping);
+    const msg = form.querySelector("[data-checkout-message]");
+    if (!order) {
+      if (msg) {
+        msg.textContent = "Your cart is empty. Add a piece before checking out.";
+        msg.dataset.type = "error";
+      }
+      return;
+    }
+    location.href = `order-confirmation.html?orderId=${encodeURIComponent(order.id)}`;
   });
 
   document.querySelector("[data-coupon-form]")?.addEventListener("submit", (event) => {

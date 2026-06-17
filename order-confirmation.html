@@ -8,9 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=orders-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script defer src="script.js"></script>
+  <script defer src="assets/vendor/supabase.min.js"></script>
+  <script defer src="supabase-config.js"></script>
+  <script defer src="catalog.js?v=orders-1"></script>
+  <script defer src="script.js?v=mobilenav-1"></script>
 </head>
 <body class="inner-page">
   <header class="site-header is-scrolled">
@@ -19,18 +22,16 @@
     <div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button" href="login.html" aria-label="Customer login"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div>
   </header>
 
-  <main>
-    <section class="page-hero">
-      <div class="page-hero__copy" data-reveal>
-        <p class="eyebrow">Order confirmed</p>
-        <h1>Your Malteaser order is reserved.</h1>
-        <p>Thank you. Your premium packaging is being prepared, and your confirmation details are ready in your account.</p>
-        <div class="button-row">
-          <a href="account.html" class="button button--dark magnetic">View Account</a>
-          <a href="shop.html" class="button button--gold magnetic">Continue Shopping</a>
-        </div>
+  <main class="page-band order-confirmation-page" style="padding-top: 130px;">
+    <section class="page-panel" data-reveal>
+      <p class="eyebrow">Order confirmed</p>
+      <h1>Your Malteaser order is reserved.</h1>
+      <p>Thank you. Your premium packaging is being prepared, and the full details are saved to your account.</p>
+      <div class="order-receipt" data-order-confirmation></div>
+      <div class="button-row">
+        <a href="account.html" class="button button--dark magnetic">View Order History</a>
+        <a href="shop.html" class="button button--gold magnetic">Continue Shopping</a>
       </div>
-      <div class="page-hero__image" data-reveal><img src="https://images.unsplash.com/photo-1512310604669-443f26c35f52?auto=format&fit=crop&w=1300&q=85" alt="Malteaser order confirmed"></div>
     </section>
   </main>
 </body>
