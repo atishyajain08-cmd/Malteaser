@@ -818,7 +818,7 @@
     if (!canCancelOrder(order)) {
       alert("This order can no longer be cancelled. The 12-hour cancellation window has closed.");
       renderOrderHistory();
-      renderOrderManagement();
+      closeManageModal();
       renderOrderConfirmation();
       return;
     }
@@ -828,7 +828,7 @@
       cancelled_at: new Date().toISOString()
     });
     renderOrderHistory();
-    renderOrderManagement();
+    closeManageModal();
     renderOrderConfirmation();
   }
 
@@ -838,7 +838,7 @@
     if (!canExchangeOrder(order)) {
       alert("This order is no longer eligible for exchange. Exchanges can be requested within 7 days of delivery.");
       renderOrderHistory();
-      renderOrderManagement();
+      closeManageModal();
       return;
     }
     const reason = prompt(`Exchange request for ${order.id}. Tell us briefly what you'd like (size change, defective item, wrong item, etc.):`, "");
@@ -854,7 +854,7 @@
     });
     alert("Exchange requested. Our team will reach out on your registered phone within 24 hours.");
     renderOrderHistory();
-    renderOrderManagement();
+    closeManageModal();
   }
 
   function renderOrderHistory() {
@@ -895,25 +895,31 @@
         ${order.exchange_requested_at ? `<p class="order-entry__note">Exchange requested on ${new Date(order.exchange_requested_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}${order.exchange_reason ? ` &middot; "${escapeHtml(order.exchange_reason)}"` : ""}</p>` : ""}
         ${orderHasManageActions(order) ? `
           <div class="order-entry__manage">
-            <a class="order-entry__manage-link" href="#${manageAnchorId(order.id)}"
-               aria-label="Manage order ${escapeHtml(order.id)}">
+            <button type="button" class="order-entry__manage-link"
+                    data-order-manage="${escapeHtml(order.id)}"
+                    aria-label="Manage order ${escapeHtml(order.id)}">
               Manage <span aria-hidden="true">&rarr;</span>
-            </a>
+            </button>
           </div>
         ` : ""}
       </article>
     `).join("");
   }
 
-  function renderOrderManagement() {
-    const root = document.querySelector("[data-order-manage]");
+  function renderOrderManagement(orderId) {
+    const root = document.querySelector("[data-order-manage-body]");
     if (!root) return;
-    const orders = readOrders().filter(orderHasManageActions);
-    if (!orders.length) {
-      root.innerHTML = `<p class="order-manage__empty">No actions required at the moment. You'll see options here when an order is eligible to cancel or exchange.</p>`;
+    if (!orderId) {
+      // No order selected (modal closed) — leave the body empty.
+      root.innerHTML = "";
       return;
     }
-    root.innerHTML = orders.map((order) => `
+    const order = readOrders().find((o) => o.id === orderId);
+    if (!order || !orderHasManageActions(order)) {
+      root.innerHTML = `<p class="order-manage__empty">This order is no longer eligible for cancellation or exchange.</p>`;
+      return;
+    }
+    root.innerHTML = `
       <article class="order-manage-entry" id="${manageAnchorId(order.id)}">
         <header class="order-manage-entry__head">
           <div>
@@ -924,8 +930,27 @@
         </header>
         <p class="order-manage-entry__summary">${escapeHtml(order.items?.[0]?.title || "Order")}${(order.items?.length || 0) > 1 ? ` &middot; ${order.items.length} items` : ""} &middot; ${formatPrice(order.total)}</p>
         ${renderOrderActions(order)}
-      </article>
-    `).join("");
+      </article>`;
+  }
+
+  let currentManageOrderId = null;
+
+  function openManageModal(orderId) {
+    const modal = document.querySelector("[data-order-manage-modal]");
+    if (!modal) return;
+    currentManageOrderId = orderId;
+    renderOrderManagement(orderId);
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeManageModal() {
+    const modal = document.querySelector("[data-order-manage-modal]");
+    if (!modal) return;
+    modal.hidden = true;
+    currentManageOrderId = null;
+    renderOrderManagement(null);
+    document.body.style.overflow = "";
   }
 
   function renderCheckoutSummary() {
@@ -1039,7 +1064,6 @@
     renderCart();
     renderWishlist();
     renderOrderHistory();
-    renderOrderManagement();
     renderCheckoutSummary();
     renderOrderConfirmation();
     renderCatalog();
@@ -1049,7 +1073,6 @@
     updateHeaderCounts();
     renderCart();
     renderOrderHistory();
-    renderOrderManagement();
     renderCheckoutSummary();
     renderOrderConfirmation();
     renderCatalog();
@@ -1063,10 +1086,30 @@
       renderCart();
       renderWishlist();
       renderOrderHistory();
-      renderOrderManagement();
+      closeManageModal();
       renderCheckoutSummary();
     }
   }
+
+  // Manage-modal triggers and dismissals (delegated from document.click).
+  document.addEventListener("click", (event) => {
+    const manageTrigger = event.target.closest("[data-order-manage]");
+    if (manageTrigger && manageTrigger.dataset.orderManage) {
+      event.preventDefault();
+      openManageModal(manageTrigger.dataset.orderManage);
+      return;
+    }
+    if (event.target.closest("[data-modal-close]")) {
+      event.preventDefault();
+      closeManageModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !document.querySelector("[data-order-manage-modal]")?.hidden) {
+      closeManageModal();
+    }
+  });
 
   window.addEventListener("storage", (event) => {
     if (event.key === customerAuthKey) {

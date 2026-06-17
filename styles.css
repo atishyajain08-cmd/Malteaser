@@ -4471,6 +4471,62 @@ blockquote cite {
   border: none;
 }
 
+/* Manage-order modal: hidden by default; opens when a customer
+   clicks the "Manage ->" link on a specific order in history. */
+.order-manage-modal[hidden] { display: none; }
+.order-manage-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.order-manage-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 18, 14, 0.55);
+  backdrop-filter: blur(2px);
+}
+.order-manage-modal__dialog {
+  position: relative;
+  background: var(--ivory, #f8f4ee);
+  border: 1px solid rgba(201, 168, 106, 0.3);
+  border-radius: 18px;
+  max-width: 520px;
+  width: 100%;
+  padding: 32px 28px 28px;
+  box-shadow: 0 24px 60px rgba(20, 18, 14, 0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.order-manage-modal__dialog h3 {
+  margin: 6px 0 10px;
+}
+.order-manage-modal__dialog .account-manage-card__intro {
+  margin-bottom: 18px;
+}
+.order-manage-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+  color: rgba(34, 34, 34, 0.55);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.order-manage-modal__close:hover {
+  background: rgba(34, 34, 34, 0.08);
+  color: var(--charcoal, #222);
+}
+
 .order-entry__note {
   margin: 12px 0 0;
   font-size: 13px;
