@@ -63,6 +63,24 @@
     button.textContent = busy ? busyLabel : button.dataset.label;
   }
 
+  function escapeHtml(value) {
+    return String(value || "").replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#039;"
+    })[character]);
+  }
+
+  function formatPrice(value) {
+    return `Rs. ${Number(value || 0).toLocaleString("en-IN")}`;
+  }
+
+  function formatDate(value) {
+    return value ? new Date(value).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "";
+  }
+
   function validate(form, values, action) {
     if (!form.reportValidity()) return "Please complete all required fields.";
     if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
@@ -179,6 +197,35 @@
     if (nameInput) nameInput.value = fullName === "Malteaser Customer" ? "" : fullName;
   }
 
+  async function renderCustomerOrders() {
+    const ordersRoot = document.querySelector("[data-customer-orders]");
+    if (!ordersRoot || !client) return;
+    ordersRoot.innerHTML = "<p>Loading your orders...</p>";
+    const { data, error } = await client
+      .from("orders")
+      .select("order_number, items, total, status, payment_status, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      ordersRoot.innerHTML = `<p>${escapeHtml(error.message || "Could not load orders right now.")}</p>`;
+      return;
+    }
+
+    const orders = data || [];
+    ordersRoot.innerHTML = orders.map((order) => {
+      const items = Array.isArray(order.items) ? order.items : [];
+      return `
+        <article class="account-order">
+          <div>
+            <span class="mini-kicker">${escapeHtml(order.order_number)}</span>
+            <strong>${formatPrice(order.total)}</strong>
+            <p>${formatDate(order.created_at)} · ${escapeHtml(order.status)} · ${escapeHtml(order.payment_status)}</p>
+          </div>
+          <small>${items.map((item) => `${escapeHtml(item.title)}${item.size ? ` · ${escapeHtml(item.size)}` : ""} x ${Number(item.quantity || 1)}`).join("<br>")}</small>
+        </article>`;
+    }).join("") || "<p>No orders yet. Your confirmed Malteaser orders will appear here.</p>";
+  }
+
   function revealProtectedContent() {
     document.body.classList.remove("auth-pending");
     document.querySelector("[data-auth-protected]")?.removeAttribute("hidden");
@@ -234,7 +281,10 @@
       document.querySelector("[data-customer-password] button")?.setAttribute("disabled", "");
     }
 
-    if (session?.user) renderAccount(session.user);
+    if (session?.user) {
+      renderAccount(session.user);
+      if (page === "account.html") renderCustomerOrders();
+    }
     revealProtectedContent();
 
     client.auth.onAuthStateChange((event, nextSession) => {

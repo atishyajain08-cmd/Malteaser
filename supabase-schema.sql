@@ -96,3 +96,60 @@ using (
   bucket_id = 'catalog'
   and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
 );
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  order_number text not null unique,
+  customer_id uuid references auth.users(id) on delete set null,
+  customer_name text not null,
+  customer_email text not null,
+  customer_phone text not null,
+  address_line1 text not null,
+  address_line2 text default '',
+  city text not null,
+  state text not null,
+  pincode text not null,
+  country text not null default 'India',
+  items jsonb not null default '[]'::jsonb,
+  subtotal integer not null default 0 check (subtotal >= 0),
+  discount integer not null default 0 check (discount >= 0),
+  total integer not null default 0 check (total >= 0),
+  status text not null default 'new' check (status in ('new', 'processing', 'packed', 'shipped', 'delivered', 'cancelled')),
+  payment_status text not null default 'pending' check (payment_status in ('pending', 'paid', 'failed', 'refunded')),
+  email_status text not null default 'pending' check (email_status in ('pending', 'sent', 'failed')),
+  email_sent_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists orders_created_at_idx on public.orders (created_at desc);
+create index if not exists orders_customer_email_idx on public.orders (lower(customer_email));
+create index if not exists orders_customer_id_idx on public.orders (customer_id);
+
+alter table public.orders enable row level security;
+
+drop policy if exists "Customers create orders" on public.orders;
+drop policy if exists "Customers read own orders" on public.orders;
+drop policy if exists "Admins read orders" on public.orders;
+drop policy if exists "Admins update orders" on public.orders;
+
+create policy "Customers create orders"
+on public.orders for insert
+to anon, authenticated
+with check (customer_id is null or customer_id = auth.uid());
+
+create policy "Customers read own orders"
+on public.orders for select
+to authenticated
+using (customer_id = auth.uid());
+
+create policy "Admins read orders"
+on public.orders for select
+to authenticated
+using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+create policy "Admins update orders"
+on public.orders for update
+to authenticated
+using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
+with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');

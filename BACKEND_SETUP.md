@@ -27,3 +27,25 @@ The static storefront uses these public client values:
 - `SUPABASE_PUBLISHABLE_KEY`
 
 They currently map to `url` and `anonKey` in `supabase-config.js`. Passwords and session tokens are handled by Supabase Auth and must never be added to repository files or logs.
+
+## Orders, Shipping, and Confirmation Emails
+
+Run `supabase-schema.sql` again after this update. It creates the `orders` table used by checkout, customer order history, and the admin order dashboard.
+
+When a customer places an order:
+
+- The order is saved in Supabase with an order number.
+- The admin backend shows customer name, email, phone, delivery address, products, total, payment status, email status, and shipping status.
+- The customer is sent to `order-confirmation.html`.
+- A Supabase Edge Function named `send-order-email` can send the customer a confirmation email.
+
+To enable confirmation emails, deploy `supabase/functions/send-order-email` and set these Supabase function secrets:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `RESEND_API_KEY`
+- `ORDER_FROM_EMAIL`, for example `Malteaser <orders@yourdomain.com>`
+
+The service-role key and Resend key must stay inside Supabase secrets only. Do not add them to `supabase-config.js`, HTML, JavaScript, GitHub, or any public file.
+
+If the email function is not deployed yet, orders will still be saved and visible in the admin backend. The email status will remain `pending` or `failed` until the function is configured.

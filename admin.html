@@ -8,13 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=storefront-complete-1">
+  <link rel="stylesheet" href="styles.css?v=orders-1">
   <link rel="stylesheet" href="admin-popup.css?v=inventory-edit-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
   <script defer src="catalog.js?v=flashcard-backend-2"></script>
-  <script defer src="admin.js?v=flashcard-backend-2"></script>
+  <script defer src="admin.js?v=orders-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -50,6 +50,7 @@
       <div class="admin-mode" role="tablist" aria-label="Catalog actions">
         <button class="active" type="button" data-admin-mode="add"><i data-lucide="plus"></i> Add collection</button>
         <button type="button" data-admin-mode="remove"><i data-lucide="trash-2"></i> Remove collection</button>
+        <button type="button" data-admin-mode="orders"><i data-lucide="package-check"></i> Orders</button>
         <button type="button" data-admin-mode="business"><i data-lucide="bar-chart-3"></i> Business tools</button>
       </div>
 
@@ -98,10 +99,20 @@
         <div class="admin-items" data-admin-items></div>
       </section>
 
+      <section class="admin-panel admin-orders" data-admin-panel="orders" hidden>
+        <p class="admin-message" data-orders-message aria-live="polite"></p>
+        <div class="admin-orders__toolbar">
+          <button class="button button--light" type="button" data-refresh-orders><i data-lucide="refresh-cw"></i> Refresh orders</button>
+          <button class="button button--dark" type="button" data-export-orders><i data-lucide="download"></i> Export orders CSV</button>
+        </div>
+        <div class="admin-orders-list" data-admin-orders></div>
+      </section>
+
       <section class="admin-panel admin-business" data-admin-panel="business" hidden>
         <div class="admin-metrics">
           <article><span>Published products</span><strong data-admin-product-count>0</strong></article>
           <article><span>Units in inventory</span><strong data-admin-stock-count>0</strong></article>
+          <article><span>Orders received</span><strong data-admin-order-count>0</strong></article>
           <article><span>Saved enquiries</span><strong data-admin-enquiry-count>0</strong></article>
         </div>
         <div class="admin-tool-list">

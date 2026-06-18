@@ -8,9 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=orders-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script defer src="script.js"></script>
+  <script defer src="order-confirmation.js?v=orders-1"></script>
+  <script defer src="script.js?v=orders-1"></script>
 </head>
 <body class="inner-page">
   <header class="site-header is-scrolled">
@@ -24,7 +25,8 @@
       <div class="page-hero__copy" data-reveal>
         <p class="eyebrow">Order confirmed</p>
         <h1>Your Malteaser order is reserved.</h1>
-        <p>Thank you. Your premium packaging is being prepared, and your confirmation details are ready in your account.</p>
+        <p data-order-confirmation-copy>Thank you. Your premium packaging is being prepared, and your confirmation email is being sent.</p>
+        <div class="order-confirmation-card" data-order-confirmation hidden></div>
         <div class="button-row">
           <a href="account.html" class="button button--dark magnetic">View Account</a>
           <a href="shop.html" class="button button--gold magnetic">Continue Shopping</a>

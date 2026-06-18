@@ -10,6 +10,8 @@
   const addMessage = document.querySelector("[data-add-message]");
   const removeMessage = document.querySelector("[data-remove-message]");
   const itemsRoot = document.querySelector("[data-admin-items]");
+  const ordersRoot = document.querySelector("[data-admin-orders]");
+  const ordersMessage = document.querySelector("[data-orders-message]");
   const businessMessage = document.querySelector("[data-business-message]");
   let inventoryDialog = document.querySelector("[data-inventory-dialog]");
   let inventoryForm = document.querySelector("[data-inventory-form]");
@@ -90,6 +92,20 @@
       product: "Product",
       "ferris-wheel": "Homepage 3D Flash Cards"
     }[section] || String(section || "").replaceAll("-", " ");
+  }
+
+  function formatPrice(value) {
+    return `Rs. ${Number(value || 0).toLocaleString("en-IN")}`;
+  }
+
+  function formatDate(value) {
+    return value ? new Date(value).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "";
+  }
+
+  function orderItemsText(items) {
+    return (Array.isArray(items) ? items : []).map((item) =>
+      `${item.title || "Product"}${item.size ? ` (${item.size})` : ""} x ${Number(item.quantity || 1)}`
+    ).join("; ");
   }
 
   function inventoryFromDescription(description) {
@@ -196,6 +212,50 @@
     window.lucide?.createIcons();
   }
 
+  async function loadAdminOrders() {
+    if (!client || !ordersRoot) return [];
+    ordersRoot.innerHTML = "<p>Loading orders...</p>";
+    const { data, error } = await client
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      ordersRoot.innerHTML = "";
+      message(ordersMessage, error.message, "error");
+      return [];
+    }
+    const orders = data || [];
+    ordersRoot.innerHTML = orders.map((order) => {
+      const items = Array.isArray(order.items) ? order.items : [];
+      return `
+      <article class="admin-order">
+        <div class="admin-order__top">
+          <div>
+            <span class="mini-kicker">${escapeHtml(order.order_number)}</span>
+            <h3>${escapeHtml(order.customer_name)}</h3>
+            <p>${escapeHtml(order.customer_email)} · ${escapeHtml(order.customer_phone)}</p>
+          </div>
+          <div class="admin-order__status">
+            <strong>${formatPrice(order.total)}</strong>
+            <select data-order-status="${escapeHtml(order.id)}" aria-label="Update status for ${escapeHtml(order.order_number)}">
+              ${["new", "processing", "packed", "shipped", "delivered", "cancelled"].map((status) =>
+                `<option value="${status}"${order.status === status ? " selected" : ""}>${status}</option>`
+              ).join("")}
+            </select>
+          </div>
+        </div>
+        <div class="admin-order__body">
+          <p><strong>Address</strong><br>${escapeHtml(order.address_line1)}${order.address_line2 ? `<br>${escapeHtml(order.address_line2)}` : ""}<br>${escapeHtml(order.city)}, ${escapeHtml(order.state)} ${escapeHtml(order.pincode)}<br>${escapeHtml(order.country || "India")}</p>
+          <p><strong>Items</strong><br>${items.map((item) => `${escapeHtml(item.title)}${item.size ? ` · ${escapeHtml(item.size)}` : ""} · Qty ${Number(item.quantity || 1)} · ${formatPrice(item.price)}`).join("<br>")}</p>
+          <p><strong>Order details</strong><br>${formatDate(order.created_at)}<br>Payment: ${escapeHtml(order.payment_status)}<br>Email: ${escapeHtml(order.email_status)}</p>
+        </div>
+      </article>`;
+    }).join("") || "<p>No orders have been placed yet.</p>";
+    message(ordersMessage, orders.length ? `${orders.length} order${orders.length === 1 ? "" : "s"} loaded.` : "No orders yet.", orders.length ? "success" : "");
+    window.lucide?.createIcons();
+    return orders;
+  }
+
   function csvDownload(filename, rows) {
     if (!rows.length) return false;
     const columns = Object.keys(rows[0]);
@@ -211,9 +271,14 @@
 
   async function loadBusinessTools() {
     if (!client) return;
-    const { data, error } = await client.from("catalog_items").select("*").order("created_at", { ascending: false });
+    const [{ data, error }, ordersResult] = await Promise.all([
+      client.from("catalog_items").select("*").order("created_at", { ascending: false }),
+      client.from("orders").select("*").order("created_at", { ascending: false })
+    ]);
     if (error) return message(businessMessage, error.message, "error");
+    if (ordersResult.error) return message(businessMessage, ordersResult.error.message, "error");
     const products = data || [];
+    const orders = ordersResult.data || [];
     const stock = products.reduce((total, item) => {
       const inventory = inventoryFromDescription(item.description) || {};
       return total + Object.values(inventory).reduce((sum, value) => sum + Number(value || 0), 0);
@@ -221,6 +286,7 @@
     const enquiries = JSON.parse(localStorage.getItem("malteaser_enquiries") || "[]");
     document.querySelector("[data-admin-product-count]").textContent = products.length;
     document.querySelector("[data-admin-stock-count]").textContent = stock;
+    document.querySelector("[data-admin-order-count]").textContent = orders.length;
     document.querySelector("[data-admin-enquiry-count]").textContent = enquiries.length;
     document.querySelector("[data-export-products]").onclick = () => {
       const rows = products.map((item) => {
@@ -252,8 +318,33 @@
         panel.hidden = panel.dataset.adminPanel !== button.dataset.adminMode;
       });
       if (button.dataset.adminMode === "remove") loadAdminItems();
+      if (button.dataset.adminMode === "orders") loadAdminOrders();
       if (button.dataset.adminMode === "business") loadBusinessTools();
     });
+  });
+
+  document.querySelector("[data-refresh-orders]")?.addEventListener("click", () => {
+    loadAdminOrders();
+  });
+
+  document.querySelector("[data-export-orders]")?.addEventListener("click", async () => {
+    const orders = await loadAdminOrders();
+    const rows = orders.map((order) => ({
+      order_number: order.order_number,
+      customer_name: order.customer_name,
+      email: order.customer_email,
+      phone: order.customer_phone,
+      address: [order.address_line1, order.address_line2, order.city, order.state, order.pincode, order.country].filter(Boolean).join(", "),
+      items: orderItemsText(order.items),
+      subtotal: order.subtotal,
+      discount: order.discount,
+      total: order.total,
+      status: order.status,
+      payment_status: order.payment_status,
+      email_status: order.email_status,
+      created_at: order.created_at
+    }));
+    message(ordersMessage, csvDownload("malteaser-orders.csv", rows) ? "Orders CSV downloaded." : "No orders to export.", rows.length ? "success" : "");
   });
 
   function updateUploadFields() {
@@ -454,6 +545,23 @@
     localStorage.setItem("malteaser_catalog_updated_at", String(Date.now()));
     message(removeMessage, "Collection removed.", "success");
     loadAdminItems();
+  });
+
+  ordersRoot?.addEventListener("change", async (event) => {
+    const select = event.target.closest("[data-order-status]");
+    if (!select || !client) return;
+    select.disabled = true;
+    message(ordersMessage, "Updating order status...");
+    const { error } = await client
+      .from("orders")
+      .update({ status: select.value, updated_at: new Date().toISOString() })
+      .eq("id", select.dataset.orderStatus);
+    select.disabled = false;
+    if (error) {
+      message(ordersMessage, error.message, "error");
+      return;
+    }
+    message(ordersMessage, "Order status updated.", "success");
   });
 
   document.querySelector("[data-sign-out]")?.addEventListener("click", async () => {
