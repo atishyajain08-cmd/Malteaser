@@ -108,6 +108,18 @@
     ).join("; ");
   }
 
+  function orderErrorMessage(error) {
+    const text = String(error?.message || "");
+    const lower = text.toLowerCase();
+    if (lower.includes("relation") && lower.includes("orders")) {
+      return "Orders backend is not installed yet. Run the latest supabase-schema.sql in Supabase SQL Editor, then refresh this admin page.";
+    }
+    if (lower.includes("permission") || lower.includes("row-level security") || lower.includes("policy")) {
+      return "Your admin account does not have permission to read orders. Confirm this user has app_metadata.role set to admin in Supabase.";
+    }
+    return text || "Could not load orders. Please refresh and try again.";
+  }
+
   function inventoryFromDescription(description) {
     const match = String(description || "").match(/\[malteaser_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]/);
     return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]) } : null;
@@ -221,7 +233,7 @@
       .order("created_at", { ascending: false });
     if (error) {
       ordersRoot.innerHTML = "";
-      message(ordersMessage, error.message, "error");
+      message(ordersMessage, orderErrorMessage(error), "error");
       return [];
     }
     const orders = data || [];
@@ -276,9 +288,9 @@
       client.from("orders").select("*").order("created_at", { ascending: false })
     ]);
     if (error) return message(businessMessage, error.message, "error");
-    if (ordersResult.error) return message(businessMessage, ordersResult.error.message, "error");
+    if (ordersResult.error) message(businessMessage, orderErrorMessage(ordersResult.error), "error");
     const products = data || [];
-    const orders = ordersResult.data || [];
+    const orders = ordersResult.error ? [] : ordersResult.data || [];
     const stock = products.reduce((total, item) => {
       const inventory = inventoryFromDescription(item.description) || {};
       return total + Object.values(inventory).reduce((sum, value) => sum + Number(value || 0), 0);

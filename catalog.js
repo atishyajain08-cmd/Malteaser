@@ -767,11 +767,26 @@
   async function saveOrderToBackend(order) {
     if (!customerClient) return order;
     const user = await currentCustomerUser();
-    const { data, error } = await customerClient
+    const payload = orderPayload(order, user);
+    let { data, error } = await customerClient
       .from("orders")
-      .insert(orderPayload(order, user))
+      .insert(payload)
       .select("id, order_number, email_status, created_at")
       .single();
+
+    if (error && String(error.message || "").toLowerCase().includes("delivery_notes")) {
+      const { delivery_notes, ...compatiblePayload } = payload;
+      ({ data, error } = await customerClient
+        .from("orders")
+        .insert(compatiblePayload)
+        .select("id, order_number, email_status, created_at")
+        .single());
+    }
+
+    if (error && String(error.message || "").toLowerCase().includes("orders")) {
+      throw new Error("The order backend is not installed yet. Please run the latest Supabase SQL setup, then try again.");
+    }
+
     if (error) throw error;
     await requestOrderEmail(data.id);
     return {
