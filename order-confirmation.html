@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=manage-modal-1">
+  <link rel="stylesheet" href="styles.css?v=celebrate-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=manage-modal-1"></script>
+  <script defer src="catalog.js?v=celebrate-1"></script>
   <script defer src="script.js?v=mobilenav-1"></script>
 </head>
 <body class="inner-page">
@@ -23,10 +23,13 @@
   </header>
 
   <main class="page-band order-confirmation-page" style="padding-top: 130px;">
-    <section class="page-panel" data-reveal>
-      <p class="eyebrow">Order confirmed</p>
-      <h1>Your Malteaser order is reserved.</h1>
-      <p>Thank you. Your premium packaging is being prepared, and the full details are saved to your account.</p>
+    <section class="page-panel order-confirmation-panel" data-reveal>
+      <div class="confetti" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="order-confirmation-hero" data-order-confirmation-hero></div>
       <div class="order-receipt" data-order-confirmation></div>
       <div class="button-row">
         <a href="account.html" class="button button--dark magnetic">View Order History</a>

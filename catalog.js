@@ -1020,12 +1020,31 @@
   function renderOrderConfirmation() {
     const root = document.querySelector("[data-order-confirmation]");
     if (!root) return;
+    const hero = document.querySelector("[data-order-confirmation-hero]");
     const orders = readOrders();
     const orderId = new URLSearchParams(location.search).get("orderId");
     const order = orderId ? orders.find((o) => o.id === orderId) : orders[0];
     if (!order) {
       root.innerHTML = `<p>No recent order found. <a class="text-button" href="shop.html">Continue shopping</a></p>`;
+      if (hero) hero.innerHTML = "";
       return;
+    }
+    if (hero) {
+      const fullName = String(order.shipping?.full_name || "").trim();
+      const firstName = fullName.split(/\s+/)[0] || "there";
+      const city = String(order.shipping?.city || "").trim();
+      const itemCount = (order.items || []).reduce((sum, it) => sum + Number(it.quantity || 1), 0);
+      const itemNoun = itemCount === 1 ? "piece" : "pieces";
+      hero.innerHTML = `
+        <div class="order-confirmation-hero__check" aria-hidden="true">
+          <svg viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="24" />
+            <path d="M14 27 l8 8 l16 -18" />
+          </svg>
+        </div>
+        <p class="eyebrow">Order confirmed</p>
+        <h1 class="order-confirmation-hero__title">Congratulations, ${escapeHtml(firstName)}!</h1>
+        <p class="order-confirmation-hero__sub">Your order <strong>${escapeHtml(order.id)}</strong> is reserved${city ? ` and on its way to <strong>${escapeHtml(city)}</strong>` : ""}. We're preparing your ${itemCount} ${itemNoun} in premium packaging now &mdash; the full details are saved below.</p>`;
     }
     root.innerHTML = `
       <p class="eyebrow">Order ${escapeHtml(order.id)}</p>
