@@ -347,7 +347,14 @@
       }
     });
     root.querySelectorAll("[data-product-action]").forEach((button) => {
-      button.dataset[button.dataset.productAction === "cart" ? "cartItem" : "wishlistItem"] = itemData(item);
+      const action = button.dataset.productAction;
+      if (action === "wishlist") {
+        button.dataset.wishlistItem = itemData(item);
+      } else {
+        // "cart" and "buy" both feed the same add-to-cart flow.
+        button.dataset.cartItem = itemData(item);
+        if (action === "buy") button.dataset.afterAdd = "checkout";
+      }
     });
   }
 
@@ -526,10 +533,17 @@
         const productRoot = cartButton.closest("[data-product-detail]");
         const selectedSize = productRoot?.querySelector(".sizes button.active")?.dataset.size;
         const quantity = Number(productRoot?.querySelector("[data-quantity-value]")?.value || 1);
+        const afterAdd = cartButton.dataset.afterAdd;
         if (selectedSize) {
           if (addToCart({ ...item, size: selectedSize }, quantity)) {
-            flashButton(cartButton, "Added");
-            renderCart();
+            if (afterAdd === "checkout") {
+              flashButton(cartButton, "Going to checkout");
+              renderCart();
+              location.href = "checkout.html";
+            } else {
+              flashButton(cartButton, "Added");
+              renderCart();
+            }
           }
         } else {
           showSizePicker(item, cartButton);
@@ -609,9 +623,11 @@
           const selectedSize = picker.querySelector("[data-picker-size].active")?.dataset.pickerSize;
           const quantity = Number(picker.querySelector("[data-quantity-value]")?.value || 1);
           if (selectedSize && addToCart({ ...picker.pendingItem, size: selectedSize }, quantity)) {
-            flashButton(picker.sourceButton, "Added");
+            const afterAdd = picker.sourceButton?.dataset.afterAdd;
+            flashButton(picker.sourceButton, afterAdd === "checkout" ? "Going to checkout" : "Added");
             renderCart();
             picker.close();
+            if (afterAdd === "checkout") location.href = "checkout.html";
           }
         }
         if (pickerEvent.target.closest("[data-close-size-picker]") || pickerEvent.target === picker) picker.close();
