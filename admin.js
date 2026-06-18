@@ -245,7 +245,7 @@
           </div>
         </div>
         <div class="admin-order__body">
-          <p><strong>Address</strong><br>${escapeHtml(order.address_line1)}${order.address_line2 ? `<br>${escapeHtml(order.address_line2)}` : ""}<br>${escapeHtml(order.city)}, ${escapeHtml(order.state)} ${escapeHtml(order.pincode)}<br>${escapeHtml(order.country || "India")}</p>
+          <p><strong>Address</strong><br>${escapeHtml(order.address_line1)}${order.address_line2 ? `<br>${escapeHtml(order.address_line2)}` : ""}<br>${escapeHtml(order.city)}, ${escapeHtml(order.state)} ${escapeHtml(order.pincode)}<br>${escapeHtml(order.country || "India")}${order.delivery_notes ? `<br><br><strong>Courier notes</strong><br>${escapeHtml(order.delivery_notes)}` : ""}</p>
           <p><strong>Items</strong><br>${items.map((item) => `${escapeHtml(item.title)}${item.size ? ` · ${escapeHtml(item.size)}` : ""} · Qty ${Number(item.quantity || 1)} · ${formatPrice(item.price)}`).join("<br>")}</p>
           <p><strong>Order details</strong><br>${formatDate(order.created_at)}<br>Payment: ${escapeHtml(order.payment_status)}<br>Email: ${escapeHtml(order.email_status)}</p>
         </div>
@@ -335,6 +335,7 @@
       email: order.customer_email,
       phone: order.customer_phone,
       address: [order.address_line1, order.address_line2, order.city, order.state, order.pincode, order.country].filter(Boolean).join(", "),
+      delivery_notes: order.delivery_notes || "",
       items: orderItemsText(order.items),
       subtotal: order.subtotal,
       discount: order.discount,

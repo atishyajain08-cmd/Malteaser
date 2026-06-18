@@ -25,6 +25,7 @@ type OrderRecord = {
   state: string;
   pincode: string;
   country?: string;
+  delivery_notes?: string;
   items: OrderItem[];
   subtotal: number;
   discount: number;
@@ -99,6 +100,7 @@ function orderHtml(order: OrderRecord) {
         <div style="margin-top:18px;background:#fffaf4;border:1px solid #eadfce;padding:20px;">
           <p style="margin:0 0 8px;"><strong>Delivery address</strong></p>
           <p style="margin:0;color:#6d6258;line-height:1.6;">${address}<br>${escapeHtml(order.customer_phone)}</p>
+          ${order.delivery_notes ? `<p style="margin:12px 0 0;color:#6d6258;line-height:1.6;"><strong>Courier notes:</strong> ${escapeHtml(order.delivery_notes)}</p>` : ""}
         </div>
 
         <p style="margin:24px 0 0;color:#74695d;font-size:13px;line-height:1.6;">This is an automatic confirmation. If any detail looks incorrect, reply to this email or contact the Malteaser team.</p>

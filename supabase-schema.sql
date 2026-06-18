@@ -110,6 +110,7 @@ create table if not exists public.orders (
   state text not null,
   pincode text not null,
   country text not null default 'India',
+  delivery_notes text not null default '',
   items jsonb not null default '[]'::jsonb,
   subtotal integer not null default 0 check (subtotal >= 0),
   discount integer not null default 0 check (discount >= 0),
@@ -121,6 +122,9 @@ create table if not exists public.orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.orders
+add column if not exists delivery_notes text not null default '';
 
 create index if not exists orders_created_at_idx on public.orders (created_at desc);
 create index if not exists orders_customer_email_idx on public.orders (lower(customer_email));

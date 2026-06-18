@@ -3,6 +3,7 @@
   const isConfigured = Boolean(config.url && config.anonKey && window.supabase);
   const isAdmin = location.pathname.endsWith("/admin.html");
   const adminTabKey = "malteaser_admin_tab_id";
+  const customerAuthKey = "malteaser-customer";
   let storageKey;
   if (isAdmin) {
     storageKey = sessionStorage.getItem(adminTabKey);
@@ -19,12 +20,41 @@
       storageKey: isAdmin ? `malteaser-admin-${storageKey}` : "malteaser-catalog"
     }
   }) : null;
+  const customerClient = isConfigured ? window.supabase.createClient(config.url, config.anonKey, {
+    auth: {
+      detectSessionInUrl: false,
+      persistSession: true,
+      autoRefreshToken: true,
+      storageKey: customerAuthKey
+    }
+  }) : null;
   const localKey = "malteaser_catalog_items";
-  const cartKey = "malteaser_cart";
-  const wishlistKey = "malteaser_wishlist";
   const catalogUpdatedKey = "malteaser_catalog_updated_at";
   const arrivalFilterKey = "malteaser_arrival_filter";
-  const couponKey = "malteaser_coupon";
+
+  // One-time purge of legacy GLOBAL keys (pre-fix, 2026-06-17).
+  // These leaked one account's cart/wishlist/coupon/orders to every other
+  // account on the same browser. Per-user keys (with a UID suffix) are kept.
+  ["malteaser_cart", "malteaser_wishlist", "malteaser_coupon", "malteaser_orders"]
+    .forEach((k) => { try { localStorage.removeItem(k); } catch {} });
+
+  // User-scoped key helpers. The current customer's UID is read from the
+  // auth.js Supabase session ("malteaser-customer"), which is where customer
+  // logins actually persist. Guests get a shared "guest" bucket.
+  function readCustomerUserId() {
+    try {
+      const raw = localStorage.getItem(customerAuthKey);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      return obj?.currentSession?.user?.id || obj?.user?.id || null;
+    } catch { return null; }
+  }
+  let cachedUserId = readCustomerUserId();
+  function keyFor(name) { return `malteaser_${name}_${cachedUserId || "guest"}`; }
+  const cartKey     = () => keyFor("cart");
+  const wishlistKey = () => keyFor("wishlist");
+  const couponKey   = () => keyFor("coupon");
+  const ordersKey   = () => keyFor("orders");
   let catalogItems = [];
   let activeArrivalFilter = sessionStorage.getItem(arrivalFilterKey) || "all";
   let catalogSearch = "";
@@ -87,8 +117,8 @@
   }
 
   function updateHeaderCounts() {
-    const cartCount = readStored(cartKey).reduce((total, item) => total + Number(item.quantity || 1), 0);
-    const wishlistCount = readStored(wishlistKey).length;
+    const cartCount = readStored(cartKey()).reduce((total, item) => total + Number(item.quantity || 1), 0);
+    const wishlistCount = readStored(wishlistKey()).length;
     document.querySelectorAll(".cart-button span").forEach((count) => {
       count.textContent = cartCount;
       count.hidden = cartCount === 0;
@@ -100,7 +130,7 @@
   }
 
   function addToCart(item, quantity = 1) {
-    const cart = readStored(cartKey);
+    const cart = readStored(cartKey());
     const normalized = normalizedItem(item);
     const existing = cart.find((entry) =>
       String(entry.id) === normalized.id && String(entry.size || "") === normalized.size
@@ -113,17 +143,17 @@
     }
     if (existing) existing.quantity = nextQuantity;
     else cart.push({ ...normalized, quantity: nextQuantity });
-    writeStored(cartKey, cart);
+    writeStored(cartKey(), cart);
     showCartConfirmation(normalized);
     return true;
   }
 
   function toggleWishlist(item) {
-    const wishlist = readStored(wishlistKey);
+    const wishlist = readStored(wishlistKey());
     const index = wishlist.findIndex((entry) => String(entry.id) === String(item.id));
     if (index >= 0) wishlist.splice(index, 1);
     else wishlist.push(normalizedItem(item));
-    writeStored(wishlistKey, wishlist);
+    writeStored(wishlistKey(), wishlist);
     return index < 0;
   }
 
@@ -168,7 +198,7 @@
   }
 
   function productCard(item) {
-    const saved = isSaved(wishlistKey, item.id);
+    const saved = isSaved(wishlistKey(), item.id);
     return `
       <article class="product-card is-visible">
         <button class="wishlist${saved ? " is-active" : ""}" type="button" data-wishlist-item="${itemData(item)}" aria-label="${saved ? "Remove" : "Add"} ${escapeHtml(item.title)} ${saved ? "from" : "to"} wishlist"><i data-lucide="heart"></i></button>
@@ -325,7 +355,14 @@
       }
     });
     root.querySelectorAll("[data-product-action]").forEach((button) => {
-      button.dataset[button.dataset.productAction === "cart" ? "cartItem" : "wishlistItem"] = itemData(item);
+      const action = button.dataset.productAction;
+      if (action === "wishlist") {
+        button.dataset.wishlistItem = itemData(item);
+      } else {
+        // "cart" and "buy" both feed the same add-to-cart flow.
+        button.dataset.cartItem = itemData(item);
+        if (action === "buy") button.dataset.afterAdd = "checkout";
+      }
     });
   }
 
@@ -333,7 +370,7 @@
     const root = document.querySelector("[data-cart-items]");
     const totalRoot = document.querySelector("[data-cart-total]");
     if (!root) return;
-    const cart = readStored(cartKey);
+    const cart = readStored(cartKey());
     root.innerHTML = cart.map((item) => {
       const quantity = Number(item.quantity || 1);
       const available = item.inventory?.[item.size];
@@ -354,7 +391,7 @@
       </article>`;
     }).join("") || '<div class="empty-state"><h2>Your cart is empty.</h2><a class="button button--dark" href="shop.html">Explore Products</a></div>';
     const subtotal = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
-    const couponApplied = localStorage.getItem(couponKey) === "MALTEASER10";
+    const couponApplied = localStorage.getItem(couponKey()) === "MALTEASER10";
     const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
     const total = Math.max(0, subtotal - discount);
     document.querySelectorAll("[data-cart-subtotal]").forEach((element) => { element.textContent = formatPrice(subtotal); });
@@ -367,7 +404,7 @@
   function renderWishlist() {
     const root = document.querySelector("[data-wishlist-items]");
     if (!root) return;
-    const wishlist = readStored(wishlistKey);
+    const wishlist = readStored(wishlistKey());
     root.innerHTML = wishlist.map(productCard).join("") || '<div class="empty-state"><h2>Your wishlist is empty.</h2><a class="button button--dark" href="shop.html">Discover Products</a></div>';
   }
 
@@ -437,6 +474,19 @@
   }
 
   document.addEventListener("click", (event) => {
+    const cancelOrderButton = event.target.closest("[data-order-cancel]");
+    if (cancelOrderButton) {
+      event.preventDefault();
+      handleCancelOrder(cancelOrderButton.dataset.orderCancel);
+      return;
+    }
+    const exchangeOrderButton = event.target.closest("[data-order-exchange]");
+    if (exchangeOrderButton) {
+      event.preventDefault();
+      handleExchangeOrder(exchangeOrderButton.dataset.orderExchange);
+      return;
+    }
+
     const cartButton = event.target.closest("[data-cart-item]");
     const wishlistButton = event.target.closest("[data-wishlist-item]");
     const removeCartButton = event.target.closest("[data-remove-cart]");
@@ -458,14 +508,14 @@
 
     if (cartQuantityButton) {
       const [itemId, itemSize = ""] = cartQuantityButton.dataset.cartKey.split("::");
-      const cart = readStored(cartKey);
+      const cart = readStored(cartKey());
       const item = cart.find((entry) => String(entry.id) === itemId && String(entry.size || "") === itemSize);
       if (item) {
         const next = Number(item.quantity || 1) + Number(cartQuantityButton.dataset.cartQuantity);
         const available = item.inventory?.[item.size];
         if (next >= 1 && (!Number.isFinite(available) || next <= available)) {
           item.quantity = next;
-          writeStored(cartKey, cart);
+          writeStored(cartKey(), cart);
           renderCart();
         } else if (Number.isFinite(available) && next > available) {
           showStockNotice(item, available);
@@ -491,10 +541,17 @@
         const productRoot = cartButton.closest("[data-product-detail]");
         const selectedSize = productRoot?.querySelector(".sizes button.active")?.dataset.size;
         const quantity = Number(productRoot?.querySelector("[data-quantity-value]")?.value || 1);
+        const afterAdd = cartButton.dataset.afterAdd;
         if (selectedSize) {
           if (addToCart({ ...item, size: selectedSize }, quantity)) {
-            flashButton(cartButton, "Added");
-            renderCart();
+            if (afterAdd === "checkout") {
+              flashButton(cartButton, "Going to checkout");
+              renderCart();
+              location.href = "checkout.html";
+            } else {
+              flashButton(cartButton, "Added");
+              renderCart();
+            }
           }
         } else {
           showSizePicker(item, cartButton);
@@ -520,7 +577,7 @@
     if (removeCartButton) {
       event.preventDefault();
       const [removeId, removeSize = ""] = removeCartButton.dataset.removeCart.split("::");
-      writeStored(cartKey, readStored(cartKey).filter((item) =>
+      writeStored(cartKey(), readStored(cartKey()).filter((item) =>
         !(String(item.id) === removeId && String(item.size || "") === removeSize)
       ));
       renderCart();
@@ -574,9 +631,11 @@
           const selectedSize = picker.querySelector("[data-picker-size].active")?.dataset.pickerSize;
           const quantity = Number(picker.querySelector("[data-quantity-value]")?.value || 1);
           if (selectedSize && addToCart({ ...picker.pendingItem, size: selectedSize }, quantity)) {
-            flashButton(picker.sourceButton, "Added");
+            const afterAdd = picker.sourceButton?.dataset.afterAdd;
+            flashButton(picker.sourceButton, afterAdd === "checkout" ? "Going to checkout" : "Added");
             renderCart();
             picker.close();
+            if (afterAdd === "checkout") location.href = "checkout.html";
           }
         }
         if (pickerEvent.target.closest("[data-close-size-picker]") || pickerEvent.target === picker) picker.close();
@@ -650,34 +709,523 @@
     }
   }
 
+  function readOrders() {
+    try {
+      return JSON.parse(localStorage.getItem(ordersKey()) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function createOrderId() {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return "MAL-" + crypto.randomUUID().slice(0, 8).toUpperCase();
+    }
+    return "MAL-" + Date.now().toString(36).toUpperCase();
+  }
+
+  async function currentCustomerUser() {
+    if (!customerClient) return null;
+    const { data } = await customerClient.auth.getSession();
+    return data.session?.user || null;
+  }
+
+  function orderPayload(order, user) {
+    const shipping = order.shipping || {};
+    return {
+      order_number: order.id,
+      customer_id: user?.id || null,
+      customer_name: String(shipping.full_name || "").trim(),
+      customer_email: String(shipping.email || "").trim().toLowerCase(),
+      customer_phone: String(shipping.phone || "").trim(),
+      address_line1: String(shipping.address_line1 || shipping.address || "").trim(),
+      address_line2: String(shipping.address_line2 || "").trim(),
+      city: String(shipping.city || "").trim(),
+      state: String(shipping.state || "").trim(),
+      pincode: String(shipping.pincode || "").trim(),
+      country: String(shipping.country || "India").trim() || "India",
+      delivery_notes: String(shipping.delivery_notes || "").trim(),
+      items: order.items,
+      subtotal: order.subtotal,
+      discount: order.discount,
+      total: order.total,
+      status: "new",
+      payment_status: "pending",
+      email_status: "pending"
+    };
+  }
+
+  async function requestOrderEmail(orderId) {
+    if (!customerClient || !orderId) return;
+    try {
+      await customerClient.functions.invoke("send-order-email", { body: { order_id: orderId } });
+    } catch (error) {
+      console.warn("Order was saved, but confirmation email is not configured yet.", error);
+    }
+  }
+
+  async function saveOrderToBackend(order) {
+    if (!customerClient) return order;
+    const user = await currentCustomerUser();
+    const { data, error } = await customerClient
+      .from("orders")
+      .insert(orderPayload(order, user))
+      .select("id, order_number, email_status, created_at")
+      .single();
+    if (error) throw error;
+    await requestOrderEmail(data.id);
+    return {
+      ...order,
+      backend_id: data.id,
+      email_status: data.email_status || "pending",
+      placed_at: data.created_at || order.placed_at
+    };
+  }
+
+  async function placeOrderFromCart(shipping = {}) {
+    const cart = readStored(cartKey());
+    if (!cart.length) return null;
+    const subtotal = cart.reduce(
+      (sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0
+    );
+    const couponApplied = localStorage.getItem(couponKey()) === "MALTEASER10";
+    const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
+    const total = Math.max(0, subtotal - discount);
+    const order = {
+      id: createOrderId(),
+      placed_at: new Date().toISOString(),
+      status: "Placed",
+      items: cart.map((item) => ({
+        id: String(item.id),
+        title: item.title || "Malteaser Product",
+        price: Number(item.price || 0),
+        quantity: Number(item.quantity || 1),
+        size: item.size || "",
+        image_url: item.image_url || "assets/white-tshirt.svg"
+      })),
+      subtotal,
+      discount,
+      coupon: couponApplied ? "MALTEASER10" : null,
+      total,
+      shipping
+    };
+    const savedOrder = await saveOrderToBackend(order);
+    const orders = readOrders();
+    orders.unshift(savedOrder);
+    localStorage.setItem(ordersKey(), JSON.stringify(orders));
+    localStorage.removeItem(cartKey());
+    localStorage.removeItem(couponKey());
+    updateHeaderCounts();
+    return savedOrder;
+  }
+
+  const CANCEL_WINDOW_MS   = 12 * 60 * 60 * 1000;       // 12 hours
+  const EXCHANGE_WINDOW_MS =  7 * 24 * 60 * 60 * 1000;  // 7 days
+
+  function canCancelOrder(order) {
+    if (!order) return false;
+    const status = String(order.status || "").toLowerCase();
+    if (status !== "placed") return false;
+    const placed = Date.parse(order.placed_at);
+    if (!placed) return false;
+    return (Date.now() - placed) < CANCEL_WINDOW_MS;
+  }
+
+  function canExchangeOrder(order) {
+    if (!order) return false;
+    const status = String(order.status || "").toLowerCase();
+    if (status !== "delivered") return false;
+    const delivered = Date.parse(order.delivered_at || "");
+    if (!delivered) return false;
+    return (Date.now() - delivered) < EXCHANGE_WINDOW_MS;
+  }
+
+  function timeLeftLabel(deadlineMs) {
+    const remaining = deadlineMs - Date.now();
+    if (remaining <= 0) return "";
+    const hours = Math.floor(remaining / (60 * 60 * 1000));
+    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+    const days = Math.floor(hours / 24);
+    if (days >= 1) return `${days} day${days === 1 ? "" : "s"} left`;
+    if (hours >= 1) return `${hours} hour${hours === 1 ? "" : "s"} ${minutes ? minutes + "m " : ""}left`;
+    return `${minutes} minute${minutes === 1 ? "" : "s"} left`;
+  }
+
+  function orderHasManageActions(order) {
+    return canCancelOrder(order) || canExchangeOrder(order);
+  }
+
+  function manageAnchorId(orderId) {
+    return `manage-${String(orderId || "").replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  }
+
+  function renderOrderActions(order) {
+    if (!order) return "";
+    const cancel = canCancelOrder(order);
+    const exchange = canExchangeOrder(order);
+    if (!cancel && !exchange) return "";
+    const buttons = [];
+    if (cancel) {
+      const deadline = Date.parse(order.placed_at) + CANCEL_WINDOW_MS;
+      buttons.push(`
+        <button class="order-action order-action--cancel" type="button"
+                data-order-cancel="${escapeHtml(order.id)}">
+          Cancel order
+          <small>${escapeHtml(timeLeftLabel(deadline))}</small>
+        </button>`);
+    }
+    if (exchange) {
+      const deadline = Date.parse(order.delivered_at) + EXCHANGE_WINDOW_MS;
+      buttons.push(`
+        <button class="order-action order-action--exchange" type="button"
+                data-order-exchange="${escapeHtml(order.id)}">
+          Request exchange
+          <small>${escapeHtml(timeLeftLabel(deadline))}</small>
+        </button>`);
+    }
+    return `<div class="order-entry__actions">${buttons.join("")}</div>`;
+  }
+
+  function updateOrderStatus(orderId, patch) {
+    const orders = readOrders();
+    const idx = orders.findIndex((o) => o.id === orderId);
+    if (idx === -1) return null;
+    orders[idx] = { ...orders[idx], ...patch };
+    localStorage.setItem(ordersKey(), JSON.stringify(orders));
+    return orders[idx];
+  }
+
+  function handleCancelOrder(orderId) {
+    const orders = readOrders();
+    const order = orders.find((o) => o.id === orderId);
+    if (!canCancelOrder(order)) {
+      alert("This order can no longer be cancelled. The 12-hour cancellation window has closed.");
+      renderOrderHistory();
+      closeManageModal();
+      renderOrderConfirmation();
+      return;
+    }
+    if (!confirm(`Cancel order ${order.id}? This cannot be undone.`)) return;
+    updateOrderStatus(orderId, {
+      status: "Cancelled",
+      cancelled_at: new Date().toISOString()
+    });
+    renderOrderHistory();
+    closeManageModal();
+    renderOrderConfirmation();
+  }
+
+  function handleExchangeOrder(orderId) {
+    const orders = readOrders();
+    const order = orders.find((o) => o.id === orderId);
+    if (!canExchangeOrder(order)) {
+      alert("This order is no longer eligible for exchange. Exchanges can be requested within 7 days of delivery.");
+      renderOrderHistory();
+      closeManageModal();
+      return;
+    }
+    const reason = prompt(`Exchange request for ${order.id}. Tell us briefly what you'd like (size change, defective item, wrong item, etc.):`, "");
+    if (reason === null) return;
+    if (!reason.trim()) {
+      alert("Please add a short reason so our team can process the exchange.");
+      return;
+    }
+    updateOrderStatus(orderId, {
+      status: "Exchange Requested",
+      exchange_requested_at: new Date().toISOString(),
+      exchange_reason: reason.trim()
+    });
+    alert("Exchange requested. Our team will reach out on your registered phone within 24 hours.");
+    renderOrderHistory();
+    closeManageModal();
+  }
+
+  function renderOrderHistory() {
+    const root = document.querySelector("[data-order-history]");
+    if (!root) return;
+    const orders = readOrders();
+    if (!orders.length) {
+      root.innerHTML = `<p class="order-history__empty">You have not placed any orders yet. <a class="text-button" href="shop.html">Start shopping</a></p>`;
+      return;
+    }
+    root.innerHTML = orders.map((order) => `
+      <article class="order-entry">
+        <header class="order-entry__head">
+          <div>
+            <strong>${escapeHtml(order.id)}</strong>
+            <small>${new Date(order.placed_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</small>
+          </div>
+          <span class="order-entry__status">${escapeHtml(order.status || "Placed")}</span>
+        </header>
+        <ul class="order-entry__items">
+          ${order.items.map((item) => `
+            <li>
+              <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}">
+              <div>
+                <strong>${escapeHtml(item.title)}</strong>
+                <small>${item.size ? `Size ${escapeHtml(item.size)} · ` : ""}Qty ${Number(item.quantity || 1)}</small>
+              </div>
+              <span>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</span>
+            </li>
+          `).join("")}
+        </ul>
+        <footer class="order-entry__total">
+          <span>Total</span>
+          <strong>${formatPrice(order.total)}</strong>
+        </footer>
+        ${renderShippingBlock(order.shipping)}
+        ${order.cancelled_at ? `<p class="order-entry__note">Cancelled on ${new Date(order.cancelled_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>` : ""}
+        ${order.exchange_requested_at ? `<p class="order-entry__note">Exchange requested on ${new Date(order.exchange_requested_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}${order.exchange_reason ? ` &middot; "${escapeHtml(order.exchange_reason)}"` : ""}</p>` : ""}
+        ${orderHasManageActions(order) ? `
+          <div class="order-entry__manage">
+            <button type="button" class="order-entry__manage-link"
+                    data-order-manage="${escapeHtml(order.id)}"
+                    aria-label="Manage order ${escapeHtml(order.id)}">
+              Manage <span aria-hidden="true">&rarr;</span>
+            </button>
+          </div>
+        ` : ""}
+      </article>
+    `).join("");
+  }
+
+  function renderOrderManagement(orderId) {
+    const root = document.querySelector("[data-order-manage-body]");
+    if (!root) return;
+    if (!orderId) {
+      // No order selected (modal closed) — leave the body empty.
+      root.innerHTML = "";
+      return;
+    }
+    const order = readOrders().find((o) => o.id === orderId);
+    if (!order || !orderHasManageActions(order)) {
+      root.innerHTML = `<p class="order-manage__empty">This order is no longer eligible for cancellation or exchange.</p>`;
+      return;
+    }
+    root.innerHTML = `
+      <article class="order-manage-entry" id="${manageAnchorId(order.id)}">
+        <header class="order-manage-entry__head">
+          <div>
+            <strong>${escapeHtml(order.id)}</strong>
+            <small>${new Date(order.placed_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</small>
+          </div>
+          <span class="order-entry__status">${escapeHtml(order.status || "Placed")}</span>
+        </header>
+        <p class="order-manage-entry__summary">${escapeHtml(order.items?.[0]?.title || "Order")}${(order.items?.length || 0) > 1 ? ` &middot; ${order.items.length} items` : ""} &middot; ${formatPrice(order.total)}</p>
+        ${renderOrderActions(order)}
+      </article>`;
+  }
+
+  let currentManageOrderId = null;
+
+  function openManageModal(orderId) {
+    const modal = document.querySelector("[data-order-manage-modal]");
+    if (!modal) return;
+    currentManageOrderId = orderId;
+    renderOrderManagement(orderId);
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeManageModal() {
+    const modal = document.querySelector("[data-order-manage-modal]");
+    if (!modal) return;
+    modal.hidden = true;
+    currentManageOrderId = null;
+    renderOrderManagement(null);
+    document.body.style.overflow = "";
+  }
+
+  function renderCheckoutSummary() {
+    const totalEl = document.querySelector("[data-checkout-total]");
+    const subEl = document.querySelector("[data-checkout-subtotal]");
+    const disEl = document.querySelector("[data-checkout-discount]");
+    const itemsEl = document.querySelector("[data-checkout-items]");
+    if (!totalEl && !itemsEl) return;
+    const cart = readStored(cartKey());
+    const subtotal = cart.reduce(
+      (sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0
+    );
+    const couponApplied = localStorage.getItem(couponKey()) === "MALTEASER10";
+    const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
+    const total = Math.max(0, subtotal - discount);
+    if (subEl) subEl.textContent = formatPrice(subtotal);
+    if (disEl) disEl.textContent = discount ? `- ${formatPrice(discount)}` : formatPrice(0);
+    if (totalEl) totalEl.textContent = formatPrice(total);
+    if (itemsEl) {
+      if (!cart.length) {
+        itemsEl.innerHTML = `<p>Your cart is empty. <a class="text-button" href="shop.html">Continue shopping</a></p>`;
+      } else {
+        itemsEl.innerHTML = cart.map((item) => `
+          <div class="checkout-line">
+            <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong>
+              <small>${item.size ? `Size ${escapeHtml(item.size)} · ` : ""}Qty ${Number(item.quantity || 1)}</small>
+            </div>
+            <span>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</span>
+          </div>
+        `).join("");
+      }
+    }
+    const placeBtn = document.querySelector("[data-place-order]");
+    if (placeBtn) placeBtn.disabled = cart.length === 0;
+  }
+
+  function renderShippingBlock(shipping) {
+    if (!shipping || typeof shipping !== "object") return "";
+    const name = shipping.full_name || "";
+    const phone = shipping.phone || "";
+    const email = shipping.email || "";
+    const line1 = shipping.address_line1 || shipping.address || "";
+    const line2 = shipping.address_line2 || "";
+    const city = shipping.city || "";
+    const state = shipping.state || "";
+    const pincode = shipping.pincode || "";
+    const country = shipping.country || "India";
+    const notes = shipping.delivery_notes || "";
+    const hasAddress = line1 || city || state || pincode;
+    if (!name && !phone && !hasAddress) return "";
+    const addressLines = [line1, line2, [city, state, pincode].filter(Boolean).join(", "), country]
+      .filter(Boolean)
+      .map((line) => `<div>${escapeHtml(line)}</div>`).join("");
+    return `
+      <section class="order-shipping">
+        <p class="eyebrow">Shipping to</p>
+        ${name ? `<p class="order-shipping__name"><strong>${escapeHtml(name)}</strong></p>` : ""}
+        <address class="order-shipping__address">${addressLines}</address>
+        ${phone ? `<p class="order-shipping__contact"><span>Phone:</span> ${escapeHtml(phone)}</p>` : ""}
+        ${email ? `<p class="order-shipping__contact"><span>Email:</span> ${escapeHtml(email)}</p>` : ""}
+        ${notes ? `<p class="order-shipping__notes"><span>Courier notes:</span> ${escapeHtml(notes)}</p>` : ""}
+      </section>`;
+  }
+
+  function renderOrderConfirmation() {
+    const root = document.querySelector("[data-order-confirmation]");
+    if (!root) return;
+    const hero = document.querySelector("[data-order-confirmation-hero]");
+    const orders = readOrders();
+    const orderId = new URLSearchParams(location.search).get("orderId");
+    const order = orderId ? orders.find((o) => o.id === orderId) : orders[0];
+    if (!order) {
+      root.innerHTML = `<p>No recent order found. <a class="text-button" href="shop.html">Continue shopping</a></p>`;
+      if (hero) hero.innerHTML = "";
+      return;
+    }
+    if (hero) {
+      const fullName = String(order.shipping?.full_name || "").trim();
+      const firstName = fullName.split(/\s+/)[0] || "there";
+      const city = String(order.shipping?.city || "").trim();
+      const itemCount = (order.items || []).reduce((sum, it) => sum + Number(it.quantity || 1), 0);
+      const itemNoun = itemCount === 1 ? "piece" : "pieces";
+      hero.innerHTML = `
+        <div class="order-confirmation-hero__check" aria-hidden="true">
+          <svg viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="24" />
+            <path d="M14 27 l8 8 l16 -18" />
+          </svg>
+        </div>
+        <p class="eyebrow">Order confirmed</p>
+        <h1 class="order-confirmation-hero__title">Congratulations, ${escapeHtml(firstName)}!</h1>
+        <p class="order-confirmation-hero__sub">Your order <strong>${escapeHtml(order.id)}</strong> is reserved${city ? ` and on its way to <strong>${escapeHtml(city)}</strong>` : ""}. We're preparing your ${itemCount} ${itemNoun} in premium packaging now &mdash; the full details are saved below.</p>`;
+    }
+    root.innerHTML = `
+      <p class="eyebrow">Order ${escapeHtml(order.id)}</p>
+      <p>Placed ${new Date(order.placed_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>
+      <ul class="order-receipt__items">
+        ${order.items.map((item) => `
+          <li>
+            <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.title)}">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong>
+              <small>${item.size ? `Size ${escapeHtml(item.size)} · ` : ""}Qty ${Number(item.quantity || 1)}</small>
+            </div>
+            <span>${formatPrice(Number(item.price) * Number(item.quantity || 1))}</span>
+          </li>
+        `).join("")}
+      </ul>
+      <div class="order-receipt__total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
+      ${renderShippingBlock(order.shipping)}
+      ${renderOrderActions(order)}`;
+  }
+
   window.MalteaserCatalog = {
     client,
     isConfigured,
     localKey,
     loadCatalog,
-    renderCatalog
+    renderCatalog,
+    placeOrderFromCart,
+    readOrders,
+    renderOrderHistory,
+    renderOrderManagement
   };
 
   document.addEventListener("DOMContentLoaded", () => {
     updateHeaderCounts();
     renderCart();
     renderWishlist();
+    renderOrderHistory();
+    renderCheckoutSummary();
+    renderOrderConfirmation();
     renderCatalog();
   });
 
   window.addEventListener("pageshow", () => {
     updateHeaderCounts();
     renderCart();
+    renderOrderHistory();
+    renderCheckoutSummary();
+    renderOrderConfirmation();
     renderCatalog();
   });
 
+  function reflectCurrentUser() {
+    const previous = cachedUserId;
+    cachedUserId = readCustomerUserId();
+    if (cachedUserId !== previous) {
+      updateHeaderCounts();
+      renderCart();
+      renderWishlist();
+      renderOrderHistory();
+      closeManageModal();
+      renderCheckoutSummary();
+    }
+  }
+
+  // Manage-modal triggers and dismissals (delegated from document.click).
+  document.addEventListener("click", (event) => {
+    const manageTrigger = event.target.closest("[data-order-manage]");
+    if (manageTrigger && manageTrigger.dataset.orderManage) {
+      event.preventDefault();
+      openManageModal(manageTrigger.dataset.orderManage);
+      return;
+    }
+    if (event.target.closest("[data-modal-close]")) {
+      event.preventDefault();
+      closeManageModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !document.querySelector("[data-order-manage-modal]")?.hidden) {
+      closeManageModal();
+    }
+  });
+
   window.addEventListener("storage", (event) => {
-    if (event.key === cartKey) {
+    if (event.key === customerAuthKey) {
+      reflectCurrentUser();
+      return;
+    }
+    if (event.key === cartKey()) {
       updateHeaderCounts();
       renderCart();
     }
     if (event.key === catalogUpdatedKey) renderCatalog();
   });
+
+  window.addEventListener("malteaser:user-changed", reflectCurrentUser);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") renderCatalog();
@@ -693,17 +1241,108 @@
     renderArrivalProducts();
   });
 
+  // PIN-code → city + state autofill using the free postalpincode.in API.
+  // Only fills empty fields so the user can always override.
+  const pincodeInput = document.querySelector('[data-checkout-form] [name="pincode"]');
+  if (pincodeInput) {
+    let status = pincodeInput.parentElement.querySelector(".pincode-status");
+    if (!status) {
+      status = document.createElement("small");
+      status.className = "pincode-status";
+      pincodeInput.parentElement.appendChild(status);
+    }
+    let lastPin = "";
+    const lookupPin = async () => {
+      const pin = String(pincodeInput.value || "").trim();
+      if (!/^[1-9][0-9]{5}$/.test(pin) || pin === lastPin) return;
+      lastPin = pin;
+      status.textContent = "Looking up PIN...";
+      status.removeAttribute("data-state");
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+        const data = await res.json();
+        const post = data?.[0]?.PostOffice?.[0];
+        if (!post || data?.[0]?.Status !== "Success") {
+          status.textContent = "We could not find this PIN code. Please enter city and state manually.";
+          status.setAttribute("data-state", "err");
+          return;
+        }
+        const form = pincodeInput.form;
+        const cityInput = form?.elements.namedItem("city");
+        const stateSelect = form?.elements.namedItem("state");
+        const city = post.District || post.Block || "";
+        const stateName = String(post.State || "").trim();
+        if (cityInput && !cityInput.value.trim() && city) cityInput.value = city;
+        if (stateSelect && !stateSelect.value && stateName) {
+          const target = stateName.toLowerCase();
+          const match = Array.from(stateSelect.options)
+            .find((o) => (o.value || o.text).toLowerCase() === target);
+          if (match) stateSelect.value = match.value || match.text;
+        }
+        status.textContent = `${city}, ${stateName}`;
+        status.setAttribute("data-state", "ok");
+      } catch {
+        status.textContent = "PIN lookup failed. Please enter city and state manually.";
+        status.setAttribute("data-state", "err");
+      }
+    };
+    pincodeInput.addEventListener("change", lookupPin);
+    pincodeInput.addEventListener("input", () => {
+      if (pincodeInput.value.replace(/\D/g, "").length === 6) lookupPin();
+    });
+  }
+
+  document.querySelector("[data-checkout-form]")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const shipping = Object.fromEntries(new FormData(form));
+    const msg = form.querySelector("[data-checkout-message]");
+    const button = form.querySelector("[data-place-order]");
+    if (button) {
+      if (!button.dataset.label) button.dataset.label = button.textContent.trim();
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      button.textContent = "Placing order...";
+    }
+    if (msg) {
+      msg.textContent = "Saving your order...";
+      msg.dataset.type = "";
+    }
+    try {
+      const order = await placeOrderFromCart(shipping);
+      if (!order) {
+        if (msg) {
+          msg.textContent = "Your cart is empty. Add a piece before checking out.";
+          msg.dataset.type = "error";
+        }
+        return;
+      }
+      location.href = `order-confirmation.html?orderId=${encodeURIComponent(order.id)}`;
+    } catch (error) {
+      if (msg) {
+        msg.textContent = error.message || "Could not save your order. Please try again.";
+        msg.dataset.type = "error";
+      }
+    } finally {
+      if (button) {
+        button.disabled = readStored(cartKey()).length === 0;
+        button.setAttribute("aria-busy", "false");
+        button.textContent = button.dataset.label || "Place Order";
+      }
+    }
+  });
+
   document.querySelector("[data-coupon-form]")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const code = String(new FormData(form).get("coupon") || "").trim().toUpperCase();
     const message = form.querySelector("[data-coupon-message]");
     if (code === "MALTEASER10") {
-      localStorage.setItem(couponKey, code);
+      localStorage.setItem(couponKey(), code);
       message.textContent = "10% private edit discount applied.";
       message.dataset.type = "success";
     } else {
-      localStorage.removeItem(couponKey);
+      localStorage.removeItem(couponKey());
       message.textContent = "This coupon is not available.";
       message.dataset.type = "error";
     }
