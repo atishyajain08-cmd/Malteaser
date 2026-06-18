@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Account | Malteaser</title>
-  <link rel="preconnect" href="https://images.unsplash.com">
+  <title>All Orders | Malteaser</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
@@ -12,7 +11,7 @@
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="auth.js?v=orders-merged-1"></script>
+  <script defer src="auth.js?v=3"></script>
   <script defer src="catalog.js?v=orders-merged-1"></script>
   <script defer src="script.js?v=mobilenav-1"></script>
 </head>
@@ -23,42 +22,15 @@
     <div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button is-active" href="account.html" aria-label="Customer account"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div>
   </header>
 
-  <main class="page-band account-page" data-auth-protected hidden>
-    <section class="page-panel account-welcome" data-reveal>
+  <main class="page-band account-page orders-page" data-auth-protected hidden>
+    <section class="page-panel" data-reveal>
       <p class="eyebrow">My Malteaser</p>
-      <div class="account-welcome__heading">
-        <div>
-          <h1>Welcome, <span data-customer-name>Malteaser Customer</span>.</h1>
-          <p>Signed in as <strong data-customer-email></strong></p>
-        </div>
-        <button class="button button--outline" type="button" data-customer-logout>Log Out</button>
+      <div class="orders-page__heading">
+        <h1>All orders</h1>
+        <a class="text-button" href="account.html">&larr; Back to account</a>
       </div>
-      <div class="tab-strip">
-        <a class="active" href="wishlist.html">Saved Looks</a>
-        <a href="cart.html">Shopping Bag</a>
-        <a href="shop.html">New Arrivals</a>
-      </div>
-    </section>
-    <section class="account-grid">
-      <article class="page-panel account-profile-card" data-reveal>
-        <span class="mini-kicker">Profile</span>
-        <h3>Your details</h3>
-        <form class="form-grid" data-customer-profile>
-          <label for="account-name">Full name</label>
-          <input id="account-name" name="full_name" type="text" autocomplete="name" minlength="2" data-profile-name required>
-          <label>Email</label>
-          <p class="account-email" data-customer-email></p>
-          <button class="button button--dark" type="submit">Save Details</button>
-          <p class="form-message" data-auth-message aria-live="polite"></p>
-        </form>
-        <a class="text-button" href="forgot-password.html">Change Password</a>
-      </article>
-      <article class="page-panel account-orders-card" data-reveal>
-        <span class="mini-kicker">Orders</span>
-        <h3>Order history</h3>
-        <div class="order-history" data-order-history></div>
-      </article>
-      <article class="page-panel" data-reveal><span class="mini-kicker">Wishlist</span><h3>Saved edit</h3><p>Review favourites, remove pieces, or move the final selection into your shopping bag.</p><a class="text-button" href="wishlist.html">Open Wishlist</a></article>
+      <p>Every order you've placed, newest first. Use Manage on an eligible order to cancel within 12 hours of placing, or request an exchange within 7 days of delivery.</p>
+      <div class="order-history" data-order-history></div>
     </section>
   </main>
 

@@ -3,7 +3,7 @@
 
   const config = window.MALTEASER_SUPABASE || {};
   const page = location.pathname.split("/").pop() || "index.html";
-  const protectedPages = new Set(["account.html"]);
+  const protectedPages = new Set(["account.html", "orders.html"]);
   const guestPages = new Set(["login.html", "signup.html"]);
   const recoveryPage = "reset-password.html";
   const client = config.url && config.anonKey && window.supabase

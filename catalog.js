@@ -948,7 +948,11 @@
       root.innerHTML = `<p class="order-history__empty">You have not placed any orders yet. <a class="text-button" href="shop.html">Start shopping</a></p>`;
       return;
     }
-    root.innerHTML = orders.map((order) => `
+    const limitAttr = root.getAttribute("data-limit");
+    const limit = limitAttr ? Math.max(1, parseInt(limitAttr, 10) || orders.length) : orders.length;
+    const visibleOrders = orders.slice(0, limit);
+    const hiddenCount = orders.length - visibleOrders.length;
+    root.innerHTML = visibleOrders.map((order) => `
       <article class="order-entry">
         <header class="order-entry__head">
           <div>
@@ -987,6 +991,13 @@
         ` : ""}
       </article>
     `).join("");
+    if (hiddenCount > 0) {
+      root.insertAdjacentHTML("beforeend", `
+        <a class="button button--outline order-history__more" href="orders.html">
+          Show previous orders
+          <span class="order-history__more-count">${hiddenCount} more</span>
+        </a>`);
+    }
   }
 
   function renderOrderManagement(orderId) {
