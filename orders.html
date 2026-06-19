@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>All Orders | Malteaser</title>
+  <title>My Orders | Malteaser</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
@@ -11,23 +11,22 @@
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="auth.js?v=3"></script>
   <script defer src="catalog.js?v=checkout-size-fix-1"></script>
   <script defer src="script.js?v=mobilenav-1"></script>
 </head>
-<body class="inner-page auth-pending">
+<body class="inner-page">
   <header class="site-header is-scrolled">
     <a href="index.html" class="brand brand--logo" aria-label="Malteaser home"><img src="assets/malteaser-logo.png" alt=""></a>
     <nav class="main-nav" aria-label="Primary navigation"><a href="shop.html">New Arrivals</a><a href="collections.html">Collections</a><a href="lookbook.html">Lookbook</a><a href="product.html">Product</a></nav>
     <div class="header-actions"><a class="icon-button" href="search.html" aria-label="Search"><i data-lucide="search"></i></a><a class="icon-button" href="wishlist.html" aria-label="Wishlist"><i data-lucide="heart"></i></a><a class="icon-button is-active" href="account.html" aria-label="Customer account"><i data-lucide="user"></i></a><a class="icon-button cart-button" href="cart.html" aria-label="Cart"><i data-lucide="shopping-bag"></i><span>2</span></a></div>
   </header>
 
-  <main class="page-band account-page orders-page" data-auth-protected hidden>
+  <main class="page-band account-page orders-page">
     <section class="page-panel" data-reveal>
       <p class="eyebrow">My Malteaser</p>
       <div class="orders-page__heading">
-        <h1>All orders</h1>
-        <a class="text-button" href="account.html">&larr; Back to account</a>
+        <h1>My orders</h1>
+        <a class="text-button" href="shop.html">Continue shopping &rarr;</a>
       </div>
       <p>Every order you've placed, newest first. Use Manage on an eligible order to cancel within 12 hours of placing, or request an exchange within 7 days of delivery.</p>
       <div class="order-history" data-order-history></div>
