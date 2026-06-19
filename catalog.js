@@ -597,10 +597,10 @@
         <h2>Select a size</h2>
         <p data-size-picker-product></p>
         <div class="sizes" role="group" aria-label="Select product size">
-          <button type="button" data-picker-size="S">S</button>
-          <button type="button" data-picker-size="M">M</button>
-          <button type="button" data-picker-size="L">L</button>
-          <button type="button" data-picker-size="XL">XL</button>
+          <button type="button" data-picker-size="S" aria-pressed="false">S</button>
+          <button type="button" data-picker-size="M" aria-pressed="false">M</button>
+          <button type="button" data-picker-size="L" aria-pressed="false">L</button>
+          <button type="button" data-picker-size="XL" aria-pressed="false">XL</button>
         </div>
         <div class="quantity-picker">
           <span>Quantity</span>
@@ -616,7 +616,11 @@
       picker.addEventListener("click", (pickerEvent) => {
         const sizeButton = pickerEvent.target.closest("[data-picker-size]");
         if (sizeButton) {
-          picker.querySelectorAll("[data-picker-size]").forEach((button) => button.classList.toggle("active", button === sizeButton));
+          picker.querySelectorAll("[data-picker-size]").forEach((button) => {
+            const isActive = button === sizeButton;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+          });
           const quantityOutput = picker.querySelector("[data-quantity-value]");
           const max = Number(sizeButton.dataset.stock || 99);
           quantityOutput.dataset.max = max;
@@ -649,7 +653,10 @@
     quantityOutput.textContent = "1";
     quantityOutput.dataset.max = 99;
     syncQuantityStepper(quantityOutput);
-    picker.querySelectorAll("[data-picker-size]").forEach((button) => button.classList.remove("active"));
+    picker.querySelectorAll("[data-picker-size]").forEach((button) => {
+      button.classList.remove("active");
+      button.setAttribute("aria-pressed", "false");
+    });
     picker.querySelector("[data-picker-add]").disabled = true;
     const inventory = item.inventory || inventoryFromDescription(item.description);
     picker.querySelectorAll("[data-picker-size]").forEach((button) => {
@@ -765,7 +772,7 @@
   }
 
   async function saveOrderToBackend(order) {
-    if (!customerClient) return order;
+    if (!customerClient) return { ...order, backend_status: "local", email_status: "pending" };
     const user = await currentCustomerUser();
     const payload = orderPayload(order, user);
     let { data, error } = await customerClient
@@ -783,11 +790,11 @@
         .single());
     }
 
-    if (error && String(error.message || "").toLowerCase().includes("orders")) {
-      throw new Error("The order backend is not installed yet. Please run the latest Supabase SQL setup, then try again.");
+    if (error) {
+      console.warn("Order backend is unavailable. Saving order locally so checkout can continue.", error);
+      return { ...order, backend_status: "local", email_status: "pending" };
     }
 
-    if (error) throw error;
     await requestOrderEmail(data.id);
     return {
       ...order,

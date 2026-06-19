@@ -2070,6 +2070,13 @@ h3 {
 }
 
 .sizes button.active,
+.sizes button[aria-pressed="true"] {
+  background: var(--ivory);
+  color: var(--charcoal);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201, 168, 106, 0.42);
+}
+
 .sizes button:hover {
   background: var(--ivory);
   color: var(--charcoal);
@@ -2167,6 +2174,14 @@ h3 {
 .size-picker .sizes button {
   border-color: rgba(34, 34, 34, 0.22);
   color: var(--charcoal);
+}
+
+.size-picker .sizes button.active,
+.size-picker .sizes button[aria-pressed="true"] {
+  background: var(--charcoal);
+  color: var(--ivory);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201, 168, 106, 0.42);
 }
 
 .size-picker .sizes button:hover {
