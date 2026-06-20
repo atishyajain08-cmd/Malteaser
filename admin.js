@@ -169,6 +169,16 @@
     };
   }
 
+  function productImages(item) {
+    const images = Array.isArray(item?.image_urls) ? item.image_urls : [];
+    return [...new Set([item?.image_url, ...images].filter(Boolean))];
+  }
+
+  function productStoragePaths(item) {
+    const paths = Array.isArray(item?.storage_paths) ? item.storage_paths : [];
+    return [...new Set([item?.storage_path, ...paths].filter(Boolean))];
+  }
+
   function descriptionWithInventory(description, values) {
     const clean = String(description || "").replace(/\s*\[malteaser_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "").trim();
     const stock = `[malteaser_stock:S=${Number(values.stock_s)},M=${Number(values.stock_m)},L=${Number(values.stock_l)},XL=${Number(values.stock_xl)}]`;
@@ -198,7 +208,7 @@
   }
 
   async function uploadFiles(files, values) {
-    const records = [];
+    const uploaded = [];
     try {
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
@@ -211,32 +221,36 @@
         if (uploadError) throw uploadError;
 
         const { data: publicData } = client.storage.from("catalog").getPublicUrl(path);
-        records.push({
-          title: files.length > 1 ? `${values.title} ${index + 1}` : values.title,
-          description: descriptionWithInventory(values.description, values),
-          price: Number(values.price || 0),
-          section: values.section,
-          label: values.section === "new-arrivals"
-            ? values.arrival_category
-            : values.section === "product"
-              ? "Product"
-              : values.section === "ferris-wheel" ? values.flash_card : "Collection",
-          image_url: publicData.publicUrl,
-          storage_path: path,
-          inventory: inventoryFromValues(values),
-          is_active: true,
-          flash_slot: values.section === "ferris-wheel" ? Number(values.flash_slot) : null,
-          sort_order: values.section === "ferris-wheel"
-            ? ((Number(String(values.flash_card).match(/[123]/)?.[0]) - 1) * 5) + Number(values.flash_slot)
-            : index + 1
-        });
+        uploaded.push({ path, url: publicData.publicUrl });
       }
     } catch (error) {
-      const uploadedPaths = records.map((record) => record.storage_path);
+      const uploadedPaths = uploaded.map((image) => image.path);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
       throw error;
     }
-    return records;
+    const imageUrls = uploaded.map((image) => image.url);
+    const storagePaths = uploaded.map((image) => image.path);
+    return [{
+      title: values.title,
+      description: descriptionWithInventory(values.description, values),
+      price: Number(values.price || 0),
+      section: values.section,
+      label: values.section === "new-arrivals"
+        ? values.arrival_category
+        : values.section === "product"
+          ? "Product"
+          : values.section === "ferris-wheel" ? values.flash_card : "Collection",
+      image_url: imageUrls[0],
+      image_urls: imageUrls,
+      storage_path: storagePaths[0],
+      storage_paths: storagePaths,
+      inventory: inventoryFromValues(values),
+      is_active: true,
+      flash_slot: values.section === "ferris-wheel" ? Number(values.flash_slot) : null,
+      sort_order: values.section === "ferris-wheel"
+        ? ((Number(String(values.flash_card).match(/[123]/)?.[0]) - 1) * 5) + Number(values.flash_slot)
+        : 1
+    }];
   }
 
   async function loadAdminItems() {
@@ -250,13 +264,14 @@
     }
     itemsRoot.innerHTML = (data || []).map((item) => {
       const inventory = inventoryForItem(item);
+      const images = productImages(item);
       const stockText = inventory
         ? `S ${inventory.S} · M ${inventory.M} · L ${inventory.L} · XL ${inventory.XL}`
         : "Size stock not set";
       return `
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
-        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(sectionName(item.section))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}${item.section === "ferris-wheel" ? ` · ${escapeHtml(item.label)} · Position ${Number(item.flash_slot || 0) || "unassigned"}` : ""}</span><small>${stockText}</small></div>
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(sectionName(item.section))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}${item.section === "ferris-wheel" ? ` · ${escapeHtml(item.label)} · Position ${Number(item.flash_slot || 0) || "unassigned"}` : ""}</span><small>${images.length} photo${images.length === 1 ? "" : "s"} · ${stockText}</small></div>
         <div class="admin-item__actions">
           <button class="admin-item__edit" type="button"
             data-edit-inventory="${escapeHtml(item.id)}"
@@ -265,7 +280,7 @@
             data-stock-s="${inventory.S}" data-stock-m="${inventory.M}" data-stock-l="${inventory.L}" data-stock-xl="${inventory.XL}">
             <i data-lucide="package-plus"></i> Edit quantity
           </button>
-          <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-path="${escapeHtml(item.storage_path)}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
+          <button class="icon-button" type="button" data-delete-id="${escapeHtml(item.id)}" data-storage-paths="${escapeHtml(JSON.stringify(productStoragePaths(item)))}" aria-label="Remove ${escapeHtml(item.title)}"><i data-lucide="trash-2"></i></button>
         </div>
       </article>`;
     }).join("") || "<p>No uploaded collections yet.</p>";
@@ -432,11 +447,11 @@
       flashSlotSelect.disabled = !isFlashCard;
       if (!isFlashCard) flashSlotSelect.value = "";
     }
-    if (photosInput) photosInput.multiple = !isFlashCard;
+    if (photosInput) photosInput.multiple = true;
     if (photoHelp) {
       photoHelp.textContent = isFlashCard
-        ? "Upload one product photo for this exact homepage position."
-        : "You may upload multiple product photos.";
+        ? "Select all photos of this one product. It will occupy one homepage position."
+        : "Select all front, back, side, and detail photos for this one product.";
     }
   }
 
@@ -485,10 +500,6 @@
       }
       if (![1, 2, 3, 4, 5].includes(slotNumber)) {
         message(addMessage, "Choose product position 1, 2, 3, 4, or 5.", "error");
-        return;
-      }
-      if (files.length !== 1) {
-        message(addMessage, "Upload exactly one product photo for each flash-card position.", "error");
         return;
       }
       const { data: occupied, error } = await client
@@ -573,9 +584,9 @@
       inventoryForm.reset();
       pendingUpload = null;
       updateUploadFields();
-      message(addMessage, `${records.length} photo${records.length === 1 ? "" : "s"} published successfully.`, "success");
+      message(addMessage, `${files.length} photo${files.length === 1 ? "" : "s"} published as one product gallery.`, "success");
     } catch (error) {
-      const uploadedPaths = records.map((record) => record.storage_path).filter(Boolean);
+      const uploadedPaths = records.flatMap((record) => productStoragePaths(record));
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
       message(
         addMessage,
@@ -625,8 +636,10 @@
       button.disabled = false;
       return message(removeMessage, error.message, "error");
     }
-    if (button.dataset.storagePath) {
-      await client.storage.from("catalog").remove([button.dataset.storagePath]);
+    if (button.dataset.storagePaths) {
+      let paths = [];
+      try { paths = JSON.parse(button.dataset.storagePaths); } catch {}
+      if (paths.length) await client.storage.from("catalog").remove(paths);
     }
     localStorage.setItem("malteaser_catalog_updated_at", String(Date.now()));
     message(removeMessage, "Collection removed.", "success");

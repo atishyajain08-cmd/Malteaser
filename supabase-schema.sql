@@ -28,6 +28,22 @@ default '{"S": 3, "M": 3, "L": 3, "XL": 3}'::jsonb;
 alter table public.catalog_items
 add column if not exists flash_slot smallint;
 
+alter table public.catalog_items
+add column if not exists image_urls jsonb not null default '[]'::jsonb;
+
+alter table public.catalog_items
+add column if not exists storage_paths jsonb not null default '[]'::jsonb;
+
+update public.catalog_items
+set image_urls = jsonb_build_array(image_url)
+where jsonb_array_length(image_urls) = 0
+  and nullif(image_url, '') is not null;
+
+update public.catalog_items
+set storage_paths = jsonb_build_array(storage_path)
+where jsonb_array_length(storage_paths) = 0
+  and nullif(storage_path, '') is not null;
+
 -- Normalise earlier deck labels, then assign their existing products to the
 -- first available positions in each five-card deck.
 update public.catalog_items

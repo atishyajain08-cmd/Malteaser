@@ -98,6 +98,11 @@
     return String(description || "").replace(/\s*\[malteaser_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "").trim();
   }
 
+  function productImages(item) {
+    const images = Array.isArray(item?.image_urls) ? item.image_urls : [];
+    return [...new Set([item?.image_url, ...images].filter(Boolean))];
+  }
+
   function normalizedItem(item) {
     return {
       id: String(item.id),
@@ -107,6 +112,7 @@
       section: item.section || "product",
       label: item.label || "Malteaser",
       image_url: item.image_url || "assets/white-tshirt.svg",
+      image_urls: productImages(item),
       size: item.size || "",
       inventory: item.inventory || inventoryFromDescription(item.description)
     };
@@ -352,8 +358,7 @@
   function renderProduct(item) {
     const root = document.querySelector("[data-product-detail]");
     if (!root || !item) return;
-    root.querySelector("[data-product-image]").src = item.image_url || "assets/white-tshirt.svg";
-    root.querySelector("[data-product-image]").alt = item.title;
+    renderProductGallery(root, item);
     root.querySelector("[data-product-title]").textContent = item.title;
     root.querySelector("[data-product-price]").textContent = formatPrice(item.price);
     root.querySelector("[data-product-description]").textContent = cleanDescription(item.description);
@@ -380,6 +385,73 @@
         if (action === "buy") button.dataset.afterAdd = "checkout";
       }
     });
+  }
+
+  function renderProductGallery(root, item) {
+    const gallery = root.querySelector("[data-product-gallery]");
+    const hero = root.querySelector(".product-hero-image");
+    const mainImage = root.querySelector("[data-product-image]");
+    const thumbnails = root.querySelector("[data-product-thumbnails]");
+    const previous = root.querySelector("[data-gallery-previous]");
+    const next = root.querySelector("[data-gallery-next]");
+    const count = root.querySelector("[data-gallery-count]");
+    if (!gallery || !hero || !mainImage || !thumbnails) return;
+
+    const images = productImages(item);
+    if (!images.length) images.push("assets/white-tshirt.svg");
+    let activeIndex = 0;
+    let transitionTimer;
+
+    thumbnails.innerHTML = images.map((image, index) => `
+      <button class="product-gallery__thumb${index === 0 ? " active" : ""}" type="button"
+        data-gallery-index="${index}" aria-label="View ${escapeHtml(item.title)} image ${index + 1}"
+        aria-pressed="${index === 0 ? "true" : "false"}">
+        <img src="${escapeHtml(image)}" alt="" loading="lazy">
+      </button>
+    `).join("");
+
+    function showImage(index, immediate = false) {
+      activeIndex = (index + images.length) % images.length;
+      window.clearTimeout(transitionTimer);
+      if (!immediate) hero.classList.add("is-changing");
+      transitionTimer = window.setTimeout(() => {
+        mainImage.src = images[activeIndex];
+        mainImage.alt = `${item.title}, view ${activeIndex + 1} of ${images.length}`;
+        thumbnails.querySelectorAll("[data-gallery-index]").forEach((button) => {
+          const active = Number(button.dataset.galleryIndex) === activeIndex;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+        if (count) count.textContent = `${activeIndex + 1} / ${images.length}`;
+        hero.classList.remove("is-changing");
+      }, immediate ? 0 : 160);
+    }
+
+    thumbnails.onclick = (event) => {
+      const button = event.target.closest("[data-gallery-index]");
+      if (button) showImage(Number(button.dataset.galleryIndex));
+    };
+    if (previous) {
+      previous.hidden = images.length < 2;
+      previous.onclick = () => showImage(activeIndex - 1);
+    }
+    if (next) {
+      next.hidden = images.length < 2;
+      next.onclick = () => showImage(activeIndex + 1);
+    }
+    gallery.tabIndex = images.length > 1 ? 0 : -1;
+    gallery.onkeydown = (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showImage(activeIndex - 1);
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showImage(activeIndex + 1);
+      }
+    };
+    if (count) count.hidden = images.length < 2;
+    showImage(0, true);
   }
 
   function renderCart() {

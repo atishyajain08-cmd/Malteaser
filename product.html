@@ -9,11 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=checkout-size-fix-1">
+  <link rel="stylesheet" href="styles.css?v=product-gallery-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=flash-slots-1"></script>
+  <script defer src="catalog.js?v=product-gallery-1"></script>
   <script defer src="script.js?v=mobilenav-1"></script>
 </head>
 <body class="inner-page">
@@ -25,7 +25,16 @@
   <main class="product-experience section">
     <div class="product-page" data-product-detail>
       <div class="product-visuals" data-reveal>
-        <div class="product-hero-image"><img id="mainProductImage" data-product-image src="assets/white-tshirt.svg" alt="Malteaser product"><div class="preview-badge"><i data-lucide="shirt"></i> Product preview</div></div>
+        <div class="product-gallery" data-product-gallery>
+          <div class="product-gallery__thumbnails" data-product-thumbnails aria-label="Product images"></div>
+          <div class="product-hero-image">
+            <img id="mainProductImage" data-product-image src="assets/white-tshirt.svg" alt="Malteaser product">
+            <button class="product-gallery__arrow product-gallery__arrow--previous" type="button" data-gallery-previous aria-label="Previous product image"><i data-lucide="chevron-left"></i></button>
+            <button class="product-gallery__arrow product-gallery__arrow--next" type="button" data-gallery-next aria-label="Next product image"><i data-lucide="chevron-right"></i></button>
+            <div class="preview-badge"><i data-lucide="images"></i> Product gallery</div>
+            <span class="product-gallery__count" data-gallery-count aria-live="polite"></span>
+          </div>
+        </div>
       </div>
       <div class="product-info" data-reveal>
         <p class="eyebrow">Signature product</p><h1 data-product-title></h1><p class="price" data-product-price></p><p class="product-copy" data-product-description></p>

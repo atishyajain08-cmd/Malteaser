@@ -2,6 +2,10 @@
 
 The storefront is dynamic and reads catalog content from Supabase when configured.
 
+Each catalogue item can store multiple ordered product photos. In the admin
+uploader, select the front, back, side, and detail images together; they are
+saved as one product gallery, with the first selected image used as the cover.
+
 Homepage 3D Flash Cards use fixed database positions: Flash Card 1, 2, or 3,
 with positions 1 through 5 inside each card. The database permits one active
 product per position, keeping the homepage total at exactly 15 available slots.

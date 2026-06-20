@@ -8,13 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=checkout-size-fix-1">
+  <link rel="stylesheet" href="styles.css?v=product-gallery-1">
   <link rel="stylesheet" href="admin-popup.css?v=inventory-edit-1">
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=flash-slots-1"></script>
-  <script defer src="admin.js?v=flash-slots-1"></script>
+  <script defer src="catalog.js?v=product-gallery-1"></script>
+  <script defer src="admin.js?v=product-gallery-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -99,7 +99,7 @@
             </select>
             <small>One product per position. Three flash cards × five positions = 15 products maximum.</small>
           </label>
-          <label>Photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required><small data-photo-help></small></label>
+          <label>Product photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required><small data-photo-help>Select all front, back, side, and detail photos for this one product.</small></label>
           <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Upload collection</button>
           <p class="admin-message" data-add-message aria-live="polite"></p>
         </form>
