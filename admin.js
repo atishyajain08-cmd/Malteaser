@@ -125,6 +125,28 @@
     return match ? { S: Number(match[1]), M: Number(match[2]), L: Number(match[3]), XL: Number(match[4]) } : null;
   }
 
+  function inventoryForItem(item) {
+    const inventory = item?.inventory;
+    if (inventory && typeof inventory === "object") {
+      return {
+        S: Math.max(0, Number(inventory.S || 0)),
+        M: Math.max(0, Number(inventory.M || 0)),
+        L: Math.max(0, Number(inventory.L || 0)),
+        XL: Math.max(0, Number(inventory.XL || 0))
+      };
+    }
+    return inventoryFromDescription(item?.description) || { S: 3, M: 3, L: 3, XL: 3 };
+  }
+
+  function inventoryFromValues(values) {
+    return {
+      S: Math.max(0, Number(values.stock_s || 0)),
+      M: Math.max(0, Number(values.stock_m || 0)),
+      L: Math.max(0, Number(values.stock_l || 0)),
+      XL: Math.max(0, Number(values.stock_xl || 0))
+    };
+  }
+
   function descriptionWithInventory(description, values) {
     const clean = String(description || "").replace(/\s*\[malteaser_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "").trim();
     const stock = `[malteaser_stock:S=${Number(values.stock_s)},M=${Number(values.stock_m)},L=${Number(values.stock_l)},XL=${Number(values.stock_xl)}]`;
@@ -179,6 +201,7 @@
               : values.section === "ferris-wheel" ? values.flash_card : "Collection",
           image_url: publicData.publicUrl,
           storage_path: path,
+          inventory: inventoryFromValues(values),
           is_active: true,
           sort_order: index + 1
         });
@@ -201,7 +224,7 @@
       return;
     }
     itemsRoot.innerHTML = (data || []).map((item) => {
-      const inventory = inventoryFromDescription(item.description) || { S: 3, M: 3, L: 3, XL: 3 };
+      const inventory = inventoryForItem(item);
       const stockText = inventory
         ? `S ${inventory.S} · M ${inventory.M} · L ${inventory.L} · XL ${inventory.XL}`
         : "Size stock not set";
@@ -261,6 +284,7 @@
           <p><strong>Items</strong><br>${items.map((item) => `${escapeHtml(item.title)}${item.size ? ` · ${escapeHtml(item.size)}` : ""} · Qty ${Number(item.quantity || 1)} · ${formatPrice(item.price)}`).join("<br>")}</p>
           <p><strong>Order details</strong><br>${formatDate(order.created_at)}<br>Payment: ${escapeHtml(order.payment_status)}<br>Email: ${escapeHtml(order.email_status)}</p>
         </div>
+        <p class="admin-order__inventory-note">Size quantities were reserved automatically when this order was placed.</p>
       </article>`;
     }).join("") || "<p>No orders have been placed yet.</p>";
     message(ordersMessage, orders.length ? `${orders.length} order${orders.length === 1 ? "" : "s"} loaded.` : "No orders yet.", orders.length ? "success" : "");
@@ -292,7 +316,7 @@
     const products = data || [];
     const orders = ordersResult.error ? [] : ordersResult.data || [];
     const stock = products.reduce((total, item) => {
-      const inventory = inventoryFromDescription(item.description) || {};
+      const inventory = inventoryForItem(item);
       return total + Object.values(inventory).reduce((sum, value) => sum + Number(value || 0), 0);
     }, 0);
     const enquiries = JSON.parse(localStorage.getItem("malteaser_enquiries") || "[]");
@@ -302,7 +326,7 @@
     document.querySelector("[data-admin-enquiry-count]").textContent = enquiries.length;
     document.querySelector("[data-export-products]").onclick = () => {
       const rows = products.map((item) => {
-        const inventory = inventoryFromDescription(item.description) || {};
+        const inventory = inventoryForItem(item);
         return {
           title: item.title,
           price: item.price,
@@ -478,7 +502,8 @@
       const edit = pendingInventoryEdit;
       message(removeMessage, `Saving quantity for ${edit.title}...`);
       const description = descriptionWithInventory(edit.description, stockValues);
-      const { error } = await client.from("catalog_items").update({ description }).eq("id", edit.id);
+      const inventory = inventoryFromValues(stockValues);
+      const { error } = await client.from("catalog_items").update({ description, inventory }).eq("id", edit.id);
       confirmButton.disabled = false;
       if (error) {
         message(removeMessage, error.message, "error");

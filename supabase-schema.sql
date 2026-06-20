@@ -21,6 +21,21 @@ alter table public.catalog_items
 add constraint catalog_items_section_check
 check (section in ('new-arrivals', 'collections', 'lookbook', 'product', 'ferris-wheel'));
 
+alter table public.catalog_items
+add column if not exists inventory jsonb not null
+default '{"S": 3, "M": 3, "L": 3, "XL": 3}'::jsonb;
+
+-- Move existing size quantities out of the legacy description marker and into
+-- a proper inventory field. The marker is left in place for older clients.
+update public.catalog_items
+set inventory = jsonb_build_object(
+  'S',  (regexp_match(description, '\[malteaser_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]'))[1]::integer,
+  'M',  (regexp_match(description, '\[malteaser_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]'))[2]::integer,
+  'L',  (regexp_match(description, '\[malteaser_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]'))[3]::integer,
+  'XL', (regexp_match(description, '\[malteaser_stock:S=(\d+),M=(\d+),L=(\d+),XL=(\d+)\]'))[4]::integer
+)
+where description ~ '\[malteaser_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]';
+
 alter table public.catalog_items enable row level security;
 
 drop policy if exists "Public catalog read" on public.catalog_items;
@@ -157,3 +172,142 @@ on public.orders for update
 to authenticated
 using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
 with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+-- Create an order and reserve its size inventory in one transaction. Any
+-- validation or stock failure rolls back both operations automatically.
+create or replace function public.place_order_with_inventory(p_order jsonb)
+returns table (
+  id uuid,
+  order_number text,
+  email_status text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+declare
+  v_item jsonb;
+  v_product public.catalog_items%rowtype;
+  v_size text;
+  v_quantity integer;
+  v_available integer;
+  v_inventory jsonb;
+  v_customer_id uuid;
+  v_order public.orders%rowtype;
+begin
+  if p_order is null or jsonb_typeof(p_order) <> 'object' then
+    raise exception 'INVALID_ORDER|Order details are missing';
+  end if;
+
+  if jsonb_typeof(p_order -> 'items') <> 'array'
+     or jsonb_array_length(p_order -> 'items') = 0 then
+    raise exception 'INVALID_ORDER|Your bag is empty';
+  end if;
+
+  if nullif(p_order ->> 'customer_id', '') is not null then
+    begin
+      v_customer_id := (p_order ->> 'customer_id')::uuid;
+    exception when invalid_text_representation then
+      raise exception 'INVALID_ORDER|Customer identity is invalid';
+    end;
+    if auth.uid() is null or auth.uid() <> v_customer_id then
+      raise exception 'INVALID_ORDER|Customer identity does not match this session';
+    end if;
+  else
+    v_customer_id := auth.uid();
+  end if;
+
+  for v_item in select value from jsonb_array_elements(p_order -> 'items') loop
+    v_size := upper(trim(coalesce(v_item ->> 'size', '')));
+    v_quantity := coalesce((v_item ->> 'quantity')::integer, 0);
+
+    if v_quantity < 1 then
+      raise exception 'INVALID_ORDER|Product quantity must be at least one';
+    end if;
+
+    -- Uploaded products use UUID ids. Static showcase products are still
+    -- accepted, but only database-backed products have managed inventory.
+    select * into v_product
+    from public.catalog_items
+    where catalog_items.id::text = v_item ->> 'id'
+      and catalog_items.is_active = true
+    for update;
+
+    if found then
+      if v_size not in ('S', 'M', 'L', 'XL') then
+        raise exception 'INVALID_SIZE|%|%', v_product.title, v_size;
+      end if;
+
+      v_available := coalesce((v_product.inventory ->> v_size)::integer, 0);
+      if v_available < v_quantity then
+        raise exception 'INSUFFICIENT_STOCK|%|%|%',
+          v_product.title, v_size, v_available;
+      end if;
+
+      v_inventory := jsonb_set(
+        v_product.inventory,
+        array[v_size],
+        to_jsonb(v_available - v_quantity),
+        true
+      );
+
+      update public.catalog_items
+      set inventory = v_inventory,
+          description = concat_ws(
+            E'\n\n',
+            nullif(trim(regexp_replace(
+              description,
+              '\s*\[malteaser_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*',
+              '',
+              'g'
+            )), ''),
+            format(
+              '[malteaser_stock:S=%s,M=%s,L=%s,XL=%s]',
+              v_inventory ->> 'S',
+              v_inventory ->> 'M',
+              v_inventory ->> 'L',
+              v_inventory ->> 'XL'
+            )
+          )
+      where catalog_items.id = v_product.id;
+    elsif coalesce(v_item ->> 'id', '') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$' then
+      raise exception 'PRODUCT_UNAVAILABLE|%', coalesce(v_item ->> 'title', 'This product');
+    end if;
+  end loop;
+
+  insert into public.orders (
+    order_number, customer_id, customer_name, customer_email,
+    customer_phone, address_line1, address_line2, city, state, pincode,
+    country, delivery_notes, items, subtotal, discount, total,
+    status, payment_status, email_status
+  ) values (
+    p_order ->> 'order_number',
+    v_customer_id,
+    trim(p_order ->> 'customer_name'),
+    lower(trim(p_order ->> 'customer_email')),
+    trim(p_order ->> 'customer_phone'),
+    trim(p_order ->> 'address_line1'),
+    trim(coalesce(p_order ->> 'address_line2', '')),
+    trim(p_order ->> 'city'),
+    trim(p_order ->> 'state'),
+    trim(p_order ->> 'pincode'),
+    trim(coalesce(p_order ->> 'country', 'India')),
+    trim(coalesce(p_order ->> 'delivery_notes', '')),
+    p_order -> 'items',
+    coalesce((p_order ->> 'subtotal')::integer, 0),
+    coalesce((p_order ->> 'discount')::integer, 0),
+    coalesce((p_order ->> 'total')::integer, 0),
+    'new', 'pending', 'pending'
+  ) returning * into v_order;
+
+  return query
+  select v_order.id, v_order.order_number, v_order.email_status, v_order.created_at;
+end;
+$$;
+
+revoke all on function public.place_order_with_inventory(jsonb) from public;
+grant execute on function public.place_order_with_inventory(jsonb) to anon, authenticated;
+
+-- Orders must use the transaction above so inventory can never be skipped.
+drop policy if exists "Customers create orders" on public.orders;

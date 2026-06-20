@@ -772,33 +772,44 @@
   }
 
   async function saveOrderToBackend(order) {
-    if (!customerClient) return { ...order, backend_status: "local", email_status: "pending" };
+    if (!customerClient) {
+      throw new Error("Ordering is temporarily unavailable. Please refresh and try again.");
+    }
     const user = await currentCustomerUser();
     const payload = orderPayload(order, user);
-    let { data, error } = await customerClient
-      .from("orders")
-      .insert(payload)
-      .select("id, order_number, email_status, created_at")
+    const { data, error } = await customerClient
+      .rpc("place_order_with_inventory", { p_order: payload })
       .single();
 
-    if (error && String(error.message || "").toLowerCase().includes("delivery_notes")) {
-      const { delivery_notes, ...compatiblePayload } = payload;
-      ({ data, error } = await customerClient
-        .from("orders")
-        .insert(compatiblePayload)
-        .select("id, order_number, email_status, created_at")
-        .single());
-    }
-
     if (error) {
-      console.warn("Order backend is unavailable. Saving order locally so checkout can continue.", error);
-      return { ...order, backend_status: "local", email_status: "pending" };
+      const text = String(error.message || "");
+      const stock = text.match(/INSUFFICIENT_STOCK\|([^|]+)\|([^|]+)\|(\d+)/);
+      if (stock) {
+        throw new Error(
+          stock[3] === "0"
+            ? `${stock[1]} in size ${stock[2]} has just sold out. Please remove it from your bag.`
+            : `Only ${stock[3]} piece${stock[3] === "1" ? " is" : "s are"} left for ${stock[1]} in size ${stock[2]}. Please adjust your bag.`
+        );
+      }
+      const unavailable = text.match(/PRODUCT_UNAVAILABLE\|([^|]+)/);
+      if (unavailable) {
+        throw new Error(`${unavailable[1]} is no longer available. Please remove it from your bag.`);
+      }
+      const invalidSize = text.match(/INVALID_SIZE\|([^|]+)\|([^|]*)/);
+      if (invalidSize) {
+        throw new Error(`Please select an available size for ${invalidSize[1]}.`);
+      }
+      if (error.code === "PGRST202" || /place_order_with_inventory|schema cache|orders/i.test(text)) {
+        throw new Error("The ordering service is being updated. Please try again shortly.");
+      }
+      throw new Error(text || "Could not place your order. Please try again.");
     }
 
     await requestOrderEmail(data.id);
     return {
       ...order,
       backend_id: data.id,
+      backend_status: "saved",
       email_status: data.email_status || "pending",
       placed_at: data.created_at || order.placed_at
     };

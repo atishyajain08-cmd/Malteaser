@@ -13,8 +13,8 @@
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=checkout-size-fix-1"></script>
-  <script defer src="admin.js?v=orders-3"></script>
+  <script defer src="catalog.js?v=inventory-orders-1"></script>
+  <script defer src="admin.js?v=inventory-orders-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -50,7 +50,7 @@
       <div class="admin-mode" role="tablist" aria-label="Catalog actions">
         <button class="active" type="button" data-admin-mode="add"><i data-lucide="plus"></i> Add collection</button>
         <button type="button" data-admin-mode="remove"><i data-lucide="trash-2"></i> Remove collection</button>
-        <button type="button" data-admin-mode="orders"><i data-lucide="package-check"></i> Orders</button>
+        <button type="button" data-admin-mode="orders"><i data-lucide="package-check"></i> Orders by Customer</button>
         <button type="button" data-admin-mode="business"><i data-lucide="bar-chart-3"></i> Business tools</button>
       </div>
 
@@ -100,6 +100,11 @@
       </section>
 
       <section class="admin-panel admin-orders" data-admin-panel="orders" hidden>
+        <div class="admin-orders__heading">
+          <p class="eyebrow">Fulfilment</p>
+          <h2>Orders by customer</h2>
+          <p>Review customer details, delivery addresses, ordered sizes, quantities, and fulfilment status.</p>
+        </div>
         <p class="admin-message" data-orders-message aria-live="polite"></p>
         <div class="admin-orders__toolbar">
           <button class="button button--light" type="button" data-refresh-orders><i data-lucide="refresh-cw"></i> Refresh orders</button>

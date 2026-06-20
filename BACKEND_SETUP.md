@@ -35,6 +35,8 @@ Run `supabase-schema.sql` again after this update. It creates the `orders` table
 When a customer places an order:
 
 - The order is saved in Supabase with an order number.
+- The ordered quantity is deducted from the selected S, M, L, or XL inventory in the same database transaction.
+- If stock changed while the customer was shopping, checkout stops and asks them to adjust their bag instead of overselling.
 - The admin backend shows customer name, email, phone, delivery address, products, total, payment status, email status, and shipping status.
 - The customer is sent to `order-confirmation.html`.
 - A Supabase Edge Function named `send-order-email` can send the customer a confirmation email.
