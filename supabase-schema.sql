@@ -25,6 +25,68 @@ alter table public.catalog_items
 add column if not exists inventory jsonb not null
 default '{"S": 3, "M": 3, "L": 3, "XL": 3}'::jsonb;
 
+alter table public.catalog_items
+add column if not exists flash_slot smallint;
+
+-- Normalise earlier deck labels, then assign their existing products to the
+-- first available positions in each five-card deck.
+update public.catalog_items
+set label = case
+  when label ~* '^(flash card|ferris wheel) 1$' or label = 'Essential Forms' then 'Flash Card 1'
+  when label ~* '^(flash card|ferris wheel) 2$' or label = 'Maison Noir' then 'Flash Card 2'
+  when label ~* '^(flash card|ferris wheel) 3$' or label = 'Modern Classics' then 'Flash Card 3'
+  else label
+end
+where section = 'ferris-wheel';
+
+with ranked_flash_cards as (
+  select
+    id,
+    row_number() over (
+      partition by label
+      order by sort_order asc, created_at asc, id asc
+    ) as slot_number
+  from public.catalog_items
+  where section = 'ferris-wheel'
+    and label in ('Flash Card 1', 'Flash Card 2', 'Flash Card 3')
+)
+update public.catalog_items as item
+set flash_slot = ranked.slot_number
+from ranked_flash_cards as ranked
+where item.id = ranked.id
+  and item.flash_slot is null
+  and ranked.slot_number between 1 and 5;
+
+create unique index if not exists catalog_flash_card_slot_unique
+on public.catalog_items (label, flash_slot)
+where section = 'ferris-wheel'
+  and is_active = true
+  and flash_slot between 1 and 5;
+
+create or replace function public.validate_flash_card_slot()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+begin
+  if new.section = 'ferris-wheel' then
+    if new.label not in ('Flash Card 1', 'Flash Card 2', 'Flash Card 3')
+       or new.flash_slot not between 1 and 5 then
+      raise exception 'FLASH_SLOT_INVALID|Choose Homepage, Flash Card 1, 2, or 3, and Slot 1 to 5';
+    end if;
+  else
+    new.flash_slot := null;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists validate_flash_card_slot_on_catalog on public.catalog_items;
+create trigger validate_flash_card_slot_on_catalog
+before insert or update of section, label, flash_slot, is_active
+on public.catalog_items
+for each row execute function public.validate_flash_card_slot();
+
 -- Move existing size quantities out of the legacy description marker and into
 -- a proper inventory field. The marker is left in place for older clients.
 update public.catalog_items

@@ -22,6 +22,10 @@
   let arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
   let flashCardField = document.querySelector("[data-flash-card-field]");
   let flashCardSelect = flashCardField?.querySelector("select");
+  let flashSlotField = document.querySelector("[data-flash-slot-field]");
+  let flashSlotSelect = flashSlotField?.querySelector("select");
+  let photosInput = addForm?.querySelector("[name='photos']");
+  let photoHelp = document.querySelector("[data-photo-help]");
 
   function ensureUploadFields() {
     if (!addForm || !sectionSelect) return;
@@ -47,16 +51,34 @@
       flashCardField.dataset.flashCardField = "";
       flashCardField.hidden = true;
       flashCardField.innerHTML = `
-        Choose flash-card deck
+        Homepage subcategory
         <select name="flash_card" disabled>
           <option value="">Choose Flash Card 1, 2, or 3</option>
           <option value="Flash Card 1">Flash Card 1 - Essential Forms</option>
           <option value="Flash Card 2">Flash Card 2 - Maison Noir</option>
           <option value="Flash Card 3">Flash Card 3 - Modern Classics</option>
-        </select>
-        <small>Each deck can contain a maximum of 5 uploaded products.</small>`;
+        </select>`;
       arrivalCategoryField.insertAdjacentElement("afterend", flashCardField);
       flashCardSelect = flashCardField.querySelector("select");
+    }
+
+    if (!flashSlotField) {
+      flashSlotField = document.createElement("label");
+      flashSlotField.dataset.flashSlotField = "";
+      flashSlotField.hidden = true;
+      flashSlotField.innerHTML = `
+        Product position inside the selected flash card
+        <select name="flash_slot" disabled>
+          <option value="">Choose position 1, 2, 3, 4, or 5</option>
+          <option value="1">Position 1</option>
+          <option value="2">Position 2</option>
+          <option value="3">Position 3</option>
+          <option value="4">Position 4</option>
+          <option value="5">Position 5</option>
+        </select>
+        <small>One product per position. Three flash cards × five positions = 15 products maximum.</small>`;
+      flashCardField.insertAdjacentElement("afterend", flashSlotField);
+      flashSlotSelect = flashSlotField.querySelector("select");
     }
 
     addForm.querySelector(".admin-stock")?.remove();
@@ -203,7 +225,10 @@
           storage_path: path,
           inventory: inventoryFromValues(values),
           is_active: true,
-          sort_order: index + 1
+          flash_slot: values.section === "ferris-wheel" ? Number(values.flash_slot) : null,
+          sort_order: values.section === "ferris-wheel"
+            ? ((Number(String(values.flash_card).match(/[123]/)?.[0]) - 1) * 5) + Number(values.flash_slot)
+            : index + 1
         });
       }
     } catch (error) {
@@ -231,7 +256,7 @@
       return `
       <article class="admin-item">
         <img src="${escapeHtml(item.image_url || "assets/white-tshirt.svg")}" alt="${escapeHtml(item.title)}">
-        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(sectionName(item.section))}${["new-arrivals", "ferris-wheel"].includes(item.section) ? ` · ${escapeHtml(item.label)}` : ""}</span><small>${stockText}</small></div>
+        <div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(sectionName(item.section))}${item.section === "new-arrivals" ? ` · ${escapeHtml(item.label)}` : ""}${item.section === "ferris-wheel" ? ` · ${escapeHtml(item.label)} · Position ${Number(item.flash_slot || 0) || "unassigned"}` : ""}</span><small>${stockText}</small></div>
         <div class="admin-item__actions">
           <button class="admin-item__edit" type="button"
             data-edit-inventory="${escapeHtml(item.id)}"
@@ -332,6 +357,8 @@
           price: item.price,
           section: item.section,
           subsection: item.label,
+          homepage_flash_card: item.section === "ferris-wheel" ? item.label : "",
+          homepage_position: item.section === "ferris-wheel" ? item.flash_slot || "unassigned" : "",
           stock_s: inventory.S || 0,
           stock_m: inventory.M || 0,
           stock_l: inventory.L || 0,
@@ -399,6 +426,18 @@
       flashCardSelect.disabled = !isFlashCard;
       if (!isFlashCard) flashCardSelect.value = "";
     }
+    if (flashSlotField) flashSlotField.hidden = !isFlashCard;
+    if (flashSlotSelect) {
+      flashSlotSelect.required = isFlashCard;
+      flashSlotSelect.disabled = !isFlashCard;
+      if (!isFlashCard) flashSlotSelect.value = "";
+    }
+    if (photosInput) photosInput.multiple = !isFlashCard;
+    if (photoHelp) {
+      photoHelp.textContent = isFlashCard
+        ? "Upload one product photo for this exact homepage position."
+        : "You may upload multiple product photos.";
+    }
   }
 
   sectionSelect?.addEventListener("change", updateUploadFields);
@@ -439,30 +478,33 @@
     const values = Object.fromEntries(formData);
     if (values.section === "ferris-wheel") {
       const deckNumber = String(values.flash_card || "").match(/[123]/)?.[0];
+      const slotNumber = Number(values.flash_slot);
       if (!deckNumber) {
         message(addMessage, "Choose Flash Card 1, 2, or 3.", "error");
         return;
       }
-      const labels = [`Flash Card ${deckNumber}`, `Ferris Wheel ${deckNumber}`];
-      const { count, error } = await client
+      if (![1, 2, 3, 4, 5].includes(slotNumber)) {
+        message(addMessage, "Choose product position 1, 2, 3, 4, or 5.", "error");
+        return;
+      }
+      if (files.length !== 1) {
+        message(addMessage, "Upload exactly one product photo for each flash-card position.", "error");
+        return;
+      }
+      const { data: occupied, error } = await client
         .from("catalog_items")
-        .select("id", { count: "exact", head: true })
+        .select("id, title")
         .eq("section", "ferris-wheel")
         .eq("is_active", true)
-        .in("label", labels);
+        .eq("label", `Flash Card ${deckNumber}`)
+        .eq("flash_slot", slotNumber)
+        .limit(1);
       if (error) {
         message(addMessage, error.message, "error");
         return;
       }
-      const remaining = Math.max(0, 5 - Number(count || 0));
-      if (files.length > remaining) {
-        message(
-          addMessage,
-          remaining
-            ? `Flash Card ${deckNumber} has space for only ${remaining} more product${remaining === 1 ? "" : "s"}.`
-            : `Flash Card ${deckNumber} is full. Remove a product before adding another.`,
-          "error"
-        );
+      if (occupied?.length) {
+        message(addMessage, `Flash Card ${deckNumber}, Position ${slotNumber} already contains ${occupied[0].title}. Remove it first or choose another position.`, "error");
         return;
       }
     }
@@ -535,7 +577,13 @@
     } catch (error) {
       const uploadedPaths = records.map((record) => record.storage_path).filter(Boolean);
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);
-      message(addMessage, error.message, "error");
+      message(
+        addMessage,
+        error.code === "23505"
+          ? "That flash-card position was just filled in another tab. Choose another position."
+          : error.message,
+        "error"
+      );
     } finally {
       submitButton.disabled = false;
       confirmButton.disabled = false;
@@ -614,6 +662,10 @@
     arrivalCategorySelect = arrivalCategoryField?.querySelector("select");
     flashCardField = document.querySelector("[data-flash-card-field]");
     flashCardSelect = flashCardField?.querySelector("select");
+    flashSlotField = document.querySelector("[data-flash-slot-field]");
+    flashSlotSelect = flashSlotField?.querySelector("select");
+    photosInput = addForm?.querySelector("[name='photos']");
+    photoHelp = document.querySelector("[data-photo-help]");
     inventoryDialog = document.querySelector("[data-inventory-dialog]");
     inventoryForm = document.querySelector("[data-inventory-form]");
     updateUploadFields();

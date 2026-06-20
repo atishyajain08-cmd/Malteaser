@@ -13,8 +13,8 @@
   <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
-  <script defer src="catalog.js?v=inventory-orders-1"></script>
-  <script defer src="admin.js?v=inventory-orders-1"></script>
+  <script defer src="catalog.js?v=flash-slots-1"></script>
+  <script defer src="admin.js?v=flash-slots-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -66,7 +66,7 @@
               <option value="collections">Collections</option>
               <option value="lookbook">Lookbook</option>
               <option value="product">Product section</option>
-              <option value="ferris-wheel">Homepage 3D Flash Cards</option>
+              <option value="ferris-wheel">Homepage &rarr; 3D Flash Cards</option>
             </select>
           </label>
           <label data-arrival-category-field>
@@ -79,16 +79,27 @@
             </select>
           </label>
           <label data-flash-card-field hidden>
-            Choose flash-card deck
+            Homepage subcategory
             <select name="flash_card" disabled>
               <option value="">Choose Flash Card 1, 2, or 3</option>
               <option value="Flash Card 1">Flash Card 1 - Essential Forms</option>
               <option value="Flash Card 2">Flash Card 2 - Maison Noir</option>
               <option value="Flash Card 3">Flash Card 3 - Modern Classics</option>
             </select>
-            <small>Each deck can contain a maximum of 5 uploaded products.</small>
           </label>
-          <label>Photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required></label>
+          <label data-flash-slot-field hidden>
+            Product position inside the selected flash card
+            <select name="flash_slot" disabled>
+              <option value="">Choose position 1, 2, 3, 4, or 5</option>
+              <option value="1">Position 1</option>
+              <option value="2">Position 2</option>
+              <option value="3">Position 3</option>
+              <option value="4">Position 4</option>
+              <option value="5">Position 5</option>
+            </select>
+            <small>One product per position. Three flash cards × five positions = 15 products maximum.</small>
+          </label>
+          <label>Photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required><small data-photo-help></small></label>
           <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Upload collection</button>
           <p class="admin-message" data-add-message aria-live="polite"></p>
         </form>

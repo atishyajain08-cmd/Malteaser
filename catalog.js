@@ -312,15 +312,16 @@
       const deckNumber = String(index + 1);
       const slots = Array.from(deck.querySelectorAll(".deck-card"));
       const products = uploaded
-        .filter((item) => flashCardNumber(item.label) === deckNumber)
-        .slice(0, 5);
+        .filter((item) => flashCardNumber(item.label) === deckNumber);
+      const occupiedSlots = new Set();
 
-      products.forEach((item, slotIndex) => {
+      function placeProduct(item, slotIndex) {
         const slot = slots[slotIndex];
         const image = slot?.querySelector("img");
         const name = slot?.querySelector(".deck-card__name");
         const price = slot?.querySelector(".deck-card__price");
         if (!slot) return;
+        occupiedSlots.add(slotIndex);
         slot.href = `product.html?id=${encodeURIComponent(item.id)}`;
         slot.setAttribute("aria-label", `View ${item.title}`);
         if (image) {
@@ -329,7 +330,22 @@
         }
         if (name) name.textContent = item.title;
         if (price) price.textContent = formatPrice(item.price);
-      });
+      }
+
+      products
+        .filter((item) => Number(item.flash_slot) >= 1 && Number(item.flash_slot) <= 5)
+        .sort((a, b) => Number(a.flash_slot) - Number(b.flash_slot))
+        .forEach((item) => placeProduct(item, Number(item.flash_slot) - 1));
+
+      const openSlots = slots
+        .map((_, slotIndex) => slotIndex)
+        .filter((slotIndex) => !occupiedSlots.has(slotIndex));
+      products
+        .filter((item) => !(Number(item.flash_slot) >= 1 && Number(item.flash_slot) <= 5))
+        .slice(0, openSlots.length)
+        .forEach((item, legacyIndex) => {
+          placeProduct(item, openSlots[legacyIndex]);
+        });
     });
   }
 

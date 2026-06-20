@@ -2,6 +2,10 @@
 
 The storefront is dynamic and reads catalog content from Supabase when configured.
 
+Homepage 3D Flash Cards use fixed database positions: Flash Card 1, 2, or 3,
+with positions 1 through 5 inside each card. The database permits one active
+product per position, keeping the homepage total at exactly 15 available slots.
+
 1. Create a free Supabase project.
 2. Open the Supabase SQL Editor and run `supabase-schema.sql`.
 3. In Authentication, create one administrator user with your chosen email and password.
