@@ -179,6 +179,72 @@
     return [...new Set([item?.storage_path, ...paths].filter(Boolean))];
   }
 
+  let pdfJsPromise;
+
+  async function loadPdfJs() {
+    if (!pdfJsPromise) {
+      pdfJsPromise = import("./assets/vendor/pdf.min.mjs").then((pdfjs) => {
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+          "./assets/vendor/pdf.worker.min.mjs",
+          location.href
+        ).href;
+        return pdfjs;
+      });
+    }
+    return pdfJsPromise;
+  }
+
+  function canvasBlob(canvas, type, quality) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("A PDF page could not be converted into an image."));
+      }, type, quality);
+    });
+  }
+
+  async function pdfToImageFiles(pdfFile) {
+    if (!pdfFile?.size) return [];
+    if (pdfFile.size > 25 * 1024 * 1024) {
+      throw new Error("The product PDF must be 25 MB or smaller.");
+    }
+
+    const pdfjs = await loadPdfJs();
+    const documentTask = pdfjs.getDocument({ data: await pdfFile.arrayBuffer() });
+    const pdf = await documentTask.promise;
+    if (pdf.numPages > 12) {
+      await pdf.destroy();
+      throw new Error("The product PDF can contain a maximum of 12 pages.");
+    }
+
+    const files = [];
+    const baseName = pdfFile.name.replace(/\.pdf$/i, "").replace(/[^a-z0-9_-]+/gi, "-") || "product";
+    try {
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+        message(addMessage, `Preparing PDF page ${pageNumber} of ${pdf.numPages}...`);
+        const page = await pdf.getPage(pageNumber);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const scale = Math.min(2.5, 1800 / Math.max(1, baseViewport.width));
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+        const context = canvas.getContext("2d", { alpha: false });
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: context, viewport }).promise;
+        const blob = await canvasBlob(canvas, "image/jpeg", 0.9);
+        files.push(new File([blob], `${baseName}-page-${pageNumber}.jpg`, { type: "image/jpeg" }));
+        page.cleanup();
+        canvas.width = 1;
+        canvas.height = 1;
+      }
+    } finally {
+      await pdf.destroy();
+    }
+    return files;
+  }
+
   function descriptionWithInventory(description, values) {
     const clean = String(description || "").replace(/\s*\[malteaser_stock:S=\d+,M=\d+,L=\d+,XL=\d+\]\s*/g, "").trim();
     const stock = `[malteaser_stock:S=${Number(values.stock_s)},M=${Number(values.stock_m)},L=${Number(values.stock_l)},XL=${Number(values.stock_xl)}]`;
@@ -450,8 +516,8 @@
     if (photosInput) photosInput.multiple = true;
     if (photoHelp) {
       photoHelp.textContent = isFlashCard
-        ? "Select all photos of this one product. It will occupy one homepage position."
-        : "Select all front, back, side, and detail photos for this one product.";
+        ? "Optional extra views remain attached to this single homepage product position."
+        : "Optional extra views remain attached to this same product.";
     }
   }
 
@@ -489,8 +555,18 @@
     event.preventDefault();
     if (!client) return;
     const formData = new FormData(addForm);
-    const files = formData.getAll("photos").filter((file) => file.size > 0);
+    const thumbnail = formData.get("thumbnail");
+    const extraFiles = formData.getAll("photos").filter((file) => file.size > 0);
+    const pdfFile = formData.get("gallery_pdf");
     const values = Object.fromEntries(formData);
+    if (!thumbnail?.size || !String(thumbnail.type || "").startsWith("image/")) {
+      message(addMessage, "Choose one cover thumbnail image for this product.", "error");
+      return;
+    }
+    if (pdfFile?.size && pdfFile.type !== "application/pdf" && !/\.pdf$/i.test(pdfFile.name)) {
+      message(addMessage, "The product gallery file must be a PDF.", "error");
+      return;
+    }
     if (values.section === "ferris-wheel") {
       const deckNumber = String(values.flash_card || "").match(/[123]/)?.[0];
       const slotNumber = Number(values.flash_slot);
@@ -519,7 +595,7 @@
         return;
       }
     }
-    pendingUpload = { files, values };
+    pendingUpload = { thumbnail, extraFiles, pdfFile, values };
     pendingInventoryEdit = null;
     inventoryForm?.reset();
     inventoryDialog.querySelector("[data-inventory-title]").textContent = "Quantity by size";
@@ -569,14 +645,18 @@
       return;
     }
 
-    const { files, values } = pendingUpload;
+    const { thumbnail, extraFiles, pdfFile, values } = pendingUpload;
     Object.assign(values, stockValues);
     const submitButton = addForm.querySelector("button[type='submit']");
     submitButton.disabled = true;
-    message(addMessage, "Uploading photos...");
+    message(addMessage, pdfFile?.size ? "Preparing your PDF gallery..." : "Uploading photos...");
     let records = [];
+    let finalFiles = [];
     try {
-      records = await uploadFiles(files, values);
+      const pdfFiles = pdfFile?.size ? await pdfToImageFiles(pdfFile) : [];
+      finalFiles = [thumbnail, ...pdfFiles, ...extraFiles];
+      message(addMessage, `Uploading ${finalFiles.length} gallery image${finalFiles.length === 1 ? "" : "s"}...`);
+      records = await uploadFiles(finalFiles, values);
       const { error } = await client.from("catalog_items").insert(records);
       if (error) throw error;
       localStorage.setItem("malteaser_catalog_updated_at", String(Date.now()));
@@ -584,7 +664,7 @@
       inventoryForm.reset();
       pendingUpload = null;
       updateUploadFields();
-      message(addMessage, `${files.length} photo${files.length === 1 ? "" : "s"} published as one product gallery.`, "success");
+      message(addMessage, `${finalFiles.length} photo${finalFiles.length === 1 ? "" : "s"} published as one product gallery.`, "success");
     } catch (error) {
       const uploadedPaths = records.flatMap((record) => productStoragePaths(record));
       if (uploadedPaths.length) await client.storage.from("catalog").remove(uploadedPaths);

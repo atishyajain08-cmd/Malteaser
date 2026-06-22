@@ -14,7 +14,7 @@
   <script defer src="assets/vendor/supabase.min.js"></script>
   <script defer src="supabase-config.js"></script>
   <script defer src="catalog.js?v=product-gallery-1"></script>
-  <script defer src="admin.js?v=product-gallery-1"></script>
+  <script defer src="admin.js?v=pdf-gallery-1"></script>
 </head>
 <body class="admin-page">
   <main class="admin-shell">
@@ -99,7 +99,9 @@
             </select>
             <small>One product per position. Three flash cards × five positions = 15 products maximum.</small>
           </label>
-          <label>Product photos<input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple required><small data-photo-help>Select all front, back, side, and detail photos for this one product.</small></label>
+          <label>Cover thumbnail photo<input type="file" name="thumbnail" accept="image/png,image/jpeg,image/webp" required><small>This image appears on collection cards and opens the full product gallery.</small></label>
+          <label>Product gallery PDF<input type="file" name="gallery_pdf" accept="application/pdf,.pdf"><small>Upload one PDF containing up to 12 product-view pages. Each page becomes a customer gallery image.</small></label>
+          <label>Extra product photos <span class="optional">(optional)</span><input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple><small data-photo-help>Add any extra front, back, side, or detail photos not included in the PDF.</small></label>
           <button class="button button--dark" type="submit"><i data-lucide="upload"></i> Upload collection</button>
           <p class="admin-message" data-add-message aria-live="polite"></p>
         </form>

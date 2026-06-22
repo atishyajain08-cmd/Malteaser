@@ -5,6 +5,8 @@ The storefront is dynamic and reads catalog content from Supabase when configure
 Each catalogue item can store multiple ordered product photos. In the admin
 uploader, select the front, back, side, and detail images together; they are
 saved as one product gallery, with the first selected image used as the cover.
+The admin also accepts one cover thumbnail plus a PDF of up to 12 pages. Each
+PDF page is converted into a customer-facing gallery image before upload.
 
 Homepage 3D Flash Cards use fixed database positions: Flash Card 1, 2, or 3,
 with positions 1 through 5 inside each card. The database permits one active
